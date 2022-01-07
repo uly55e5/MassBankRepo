@@ -46,7 +46,7 @@ func (p *StringProperty) Parse(s string) error {
 }
 
 func (p *SubtagProperty) Parse(s string) error {
-	ss := strings.SplitN(s, " ", 2)
+	ss := strings.SplitN(strings.TrimSpace(s), " ", 2)
 	p.subtag = ss[0]
 	p.value = ss[1]
 	return nil
