@@ -13,6 +13,8 @@ import (
 
 const dateFormat = "2006.01.02"
 
+var lastTag string
+
 type Property interface {
 	Validate() bool
 	Output() string
@@ -153,7 +155,7 @@ type RecordAuthorNames struct {
 func (names *RecordAuthorNames) Parse(s string) error {
 	ss := strings.Split(s, ",")
 	for _, s1 := range ss {
-		re := regexp.MustCompile("(.*)(\\[(.*)\\])?")
+		re := regexp.MustCompile("(.*)([(.*)])?")
 		ss1 := re.FindStringSubmatch(s1)
 		marc := ""
 		if len(ss1) > 2 {
@@ -344,8 +346,12 @@ type PeakValue struct {
 	rel       uint
 }
 
-func (p *PeakValue) Parse(s string) error {
-
+func (p *PkPeak) Parse(s string) error {
+	if s != "m/z int. rel.int." {
+		return errors.New("PK$ is not valid")
+	}
+	p.Header = strings.Split(s, " ")
+	return nil
 }
 
 type TagValue struct {
@@ -370,9 +376,19 @@ func (mb *Massbank) ParseFile(fileName string) error {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "//") {
 			// ignore comment
+			lineNum++
 		} else if strings.HasPrefix(line, "  ") {
-			// multiline value
-			println("not implemented", line)
+			if lastTag == "PK$PEAK" {
+				var pv PeakValue
+				if err = pv.parse(strings.TrimSpace(line)); err != nil {
+					println("Could not read Peakvalue: line ", lineNum, err.Error())
+				} else {
+					mb.PkPeak.Values = append(mb.PkPeak.Values, pv)
+				}
+				lineNum++
+			} else {
+				println("not implemented", line)
+			}
 		} else {
 			s := strings.SplitN(line, ":", 2)
 			if len(s) == 2 {
@@ -391,6 +407,7 @@ func (mb *Massbank) ParseFile(fileName string) error {
 				newInterf := newPro.Interface()
 				propInt := newInterf.(Property)
 				err = propInt.Parse(value)
+				lastTag = tagname
 				if err != nil {
 					println(err.Error(), line)
 				}
@@ -405,6 +422,23 @@ func (mb *Massbank) ParseFile(fileName string) error {
 		}
 		lineNum++
 	}
+	return nil
+}
+
+func (p *PeakValue) parse(s string) error {
+	ss := strings.Split(s, " ")
+	var err error
+	var rel uint64
+	if p.mz, err = strconv.ParseFloat(ss[0], 32); err != nil {
+		return errors.New("Could not parse mz value")
+	}
+	if p.intensity, err = strconv.ParseFloat(ss[1], 32); err != nil {
+		return errors.New("Could not parse intensity value")
+	}
+	if rel, err = strconv.ParseUint(ss[2], 10, 32); err != nil {
+		return errors.New("Could not parse relative intensity")
+	}
+	p.rel = uint(rel)
 	return nil
 }
 
