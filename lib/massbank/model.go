@@ -5,9 +5,13 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
+
+const dateFormat = "2006.01.02"
 
 type Property interface {
 	Validate() bool
@@ -19,8 +23,8 @@ type DefaultProperty struct {
 }
 
 type StringProperty struct {
+	string
 	DefaultProperty
-	value string
 }
 
 type SubtagProperty struct {
@@ -41,14 +45,14 @@ func (p *DefaultProperty) Parse(string) error {
 }
 
 func (p *StringProperty) Parse(s string) error {
-	p.value = s
+	p.string = s
 	return nil
 }
 
 func (p *SubtagProperty) Parse(s string) error {
-	ss := strings.SplitN(strings.TrimSpace(s), " ", 2)
+	ss := strings.SplitN(s, " ", 2)
 	p.subtag = ss[0]
-	p.value = ss[1]
+	p.string = ss[1]
 	return nil
 }
 
@@ -106,10 +110,7 @@ type RecordDeprecated struct {
 }
 
 type RecordTitle struct {
-	DefaultProperty
-	ChName           ChName
-	AcInstrumentType AcInstrumentType
-	MsType           MsType
+	StringProperty
 }
 
 type RecordDate struct {
@@ -117,9 +118,52 @@ type RecordDate struct {
 	Updated time.Time
 	Created time.Time
 }
+
+func (d *RecordDate) Parse(s string) error {
+	var err error
+	ss := strings.SplitN(s, " ", 2)
+	if len(ss) > 1 {
+		re := regexp.MustCompile("\\(Cretated (.*)\\)")
+		ss2 := re.FindStringSubmatch(ss[1])
+		if len(ss2) == 2 {
+			if d.Created, err = time.Parse(dateFormat, ss2[1]); err != nil {
+				return err
+			} else {
+				return errors.New("Format error in Date")
+			}
+		}
+	} else {
+		if d.Created, err = time.Parse(dateFormat, ss[0]); err != nil {
+			return err
+		}
+	}
+	d.Updated, err = time.Parse(dateFormat, ss[0])
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 type RecordAuthorNames struct {
 	DefaultProperty
 	value []RecordAuthorName
+}
+
+func (names *RecordAuthorNames) Parse(s string) error {
+	ss := strings.Split(s, ",")
+	for _, s1 := range ss {
+		re := regexp.MustCompile("(.*)(\\[(.*)\\])?")
+		ss1 := re.FindStringSubmatch(s1)
+		marc := ""
+		if len(ss1) > 2 {
+			marc = ss1[2]
+		}
+		if len(ss1) > 1 {
+			names.value = append(names.value, RecordAuthorName{ss1[1], marc})
+		}
+	}
+	return nil
 }
 
 type RecordAuthorName struct {
@@ -159,6 +203,16 @@ type ChCompoundClasses struct {
 	DefaultProperty
 	value []ChCompoundClass
 }
+
+func (cc *ChCompoundClasses) Parse(s string) error {
+	ss := strings.Split(s, ";")
+	for _, s1 := range ss {
+		var c = ChCompoundClass(strings.TrimSpace(s1))
+		cc.value = append(cc.value, c)
+	}
+	return nil
+}
+
 type ChCompoundClass string
 
 type ChFormula struct {
@@ -170,6 +224,15 @@ type ChMass struct {
 	value float64
 }
 
+func (mass *ChMass) Parse(s string) error {
+	var err error
+	mass.value, err = strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type ChSmiles struct {
 	StringProperty
 }
@@ -179,9 +242,7 @@ type ChInchi struct {
 }
 
 type ChLink struct {
-	DefaultProperty
-	Database ExtDatabase
-	Link     string
+	SubtagProperty
 }
 
 type ExtDatabase struct {
@@ -223,10 +284,7 @@ type Separation string
 type Ionization string
 type Analyzer string
 type AcInstrumentType struct {
-	DefaultProperty
-	Separation  Separation
-	Ionization  Ionization
-	IonAnalyzer Analyzer
+	StringProperty
 }
 type MsType string
 type AcMassSpectrometry struct {
@@ -268,13 +326,26 @@ type PkAnnotation struct {
 
 type PkNumPeak struct {
 	DefaultProperty
-	value uint
+	Value uint
+}
+
+func (n *PkNumPeak) Parse(s string) error {
+	val, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return err
+	}
+	n.Value = uint(val)
+	return nil
 }
 
 type PeakValue struct {
 	mz        float64
 	intensity float64
 	rel       uint
+}
+
+func (p *PeakValue) Parse(s string) error {
+
 }
 
 type TagValue struct {
@@ -306,7 +377,7 @@ func (mb *Massbank) ParseFile(fileName string) error {
 			s := strings.SplitN(line, ":", 2)
 			if len(s) == 2 {
 				tagname := s[0]
-				value := s[1]
+				value := strings.TrimSpace(s[1])
 				tagInfo := TagMap[tagname]
 				index := tagInfo.Index
 				mb2 := reflect.ValueOf(mb)
