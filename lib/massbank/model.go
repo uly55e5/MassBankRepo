@@ -67,39 +67,39 @@ type tagProperties struct {
 var TagMap = map[string]tagProperties{}
 
 type Massbank struct {
-	Accession          *RecordAccession      `mb:"ACCESSION"`
-	Deprecated         *RecordDeprecated     `mb:"DEPRECATED"`
-	RecordTitle        *RecordTitle          `mb:"RECORD_TITLE"`
-	Date               *RecordDate           `mb:"DATE"`
-	Authors            *RecordAuthorNames    `mb:"AUTHORS"`
-	License            *RecordLicense        `mb:"LICENSE"`
-	Copyright          *RecordCopyright      `mb:"COPYRIGHT"`
-	Publication        *RecordPublication    `mb:"PUBLICATION"`
-	Project            *RecordProject        `mb:"PROJECT"`
-	Comments           []*RecordComment      `mb:"COMMENT"`
-	ChNames            []*ChName             `mb:"CH$NAME"`
-	ChClass            *ChCompoundClasses    `mb:"CH$COMPOUND_CLASS"`
-	ChFormula          *ChFormula            `mb:"CH$FORMULA"`
-	ChCdkDepict        []*CdkDepict          `mb:"CH$CDK_DEPICT"` // not for productive use
-	ChMass             *ChMass               `mb:"CH$EXACT_MASS"`
-	ChSmiles           *ChSmiles             `mb:"CH$SMILES"`
-	ChInchi            *ChInchi              `mb:"CH$IUPAC"`
-	ChLink             []*ChLink             `mb:"CH$LINK"`
-	SpName             *SpName               `mb:"SP$SCIENTIFIC_NAME"`
-	SpLineage          *SpLineage            `mb:"SP$LINEAGE"`
-	SpLink             []*SpLink             `mb:"SP$LINK"`
-	SpSample           []*SampleInformation  `mb:"SP$SAMPLE"`
-	AcInstrument       *AcInstrument         `mb:"AC$INSTRUMENT"`
-	AcInstrumentType   *AcInstrumentType     `mb:"AC$INSTRUMENT_TYPE"`
-	AcMassSpectrometry []*AcMassSpectrometry `mb:"AC$MASS_SPECTROMETRY"`
-	AcChromatography   []*AcChromatography   `mb:"AC$CHROMATOGRAPHY"`
-	AcGeneral          []*AcGeneral          `mb:"AC$GENERAL"`
-	MsFocusedIon       []*MsFocusedIon       `mb:"MS$FOCUSED_ION"`
-	MsDataProcessing   []*MsDataProcessing   `mb:"MS$DATA_PROCESSING"`
-	PkSplash           *PkSplash             `mb:"PK$SPLASH"`
-	PkAnnotation       *PkAnnotation         `mb:"PK$ANNOTATION"`
-	PkNumPeak          *PkNumPeak            `mb:"PK$NUM_PEAK"`
-	PkPeak             *PkPeak               `mb:"PK$PEAK"`
+	Accession          *RecordAccession      `mb2:"ACCESSION"`
+	Deprecated         *RecordDeprecated     `mb2:"DEPRECATED"`
+	RecordTitle        *RecordTitle          `mb2:"RECORD_TITLE"`
+	Date               *RecordDate           `mb2:"DATE"`
+	Authors            *RecordAuthorNames    `mb2:"AUTHORS"`
+	License            *RecordLicense        `mb2:"LICENSE"`
+	Copyright          *RecordCopyright      `mb2:"COPYRIGHT"`
+	Publication        *RecordPublication    `mb2:"PUBLICATION"`
+	Project            *RecordProject        `mb2:"PROJECT"`
+	Comments           []*RecordComment      `mb2:"COMMENT"`
+	ChNames            []*ChName             `mb2:"CH$NAME"`
+	ChClass            *ChCompoundClasses    `mb2:"CH$COMPOUND_CLASS"`
+	ChFormula          *ChFormula            `mb2:"CH$FORMULA"`
+	ChCdkDepict        []*CdkDepict          `mb2:"CH$CDK_DEPICT"` // not for productive use
+	ChMass             *ChMass               `mb2:"CH$EXACT_MASS"`
+	ChSmiles           *ChSmiles             `mb2:"CH$SMILES"`
+	ChInchi            *ChInchi              `mb2:"CH$IUPAC"`
+	ChLink             []*ChLink             `mb2:"CH$LINK"`
+	SpName             *SpName               `mb2:"SP$SCIENTIFIC_NAME"`
+	SpLineage          *SpLineage            `mb2:"SP$LINEAGE"`
+	SpLink             []*SpLink             `mb2:"SP$LINK"`
+	SpSample           []*SampleInformation  `mb2:"SP$SAMPLE"`
+	AcInstrument       *AcInstrument         `mb2:"AC$INSTRUMENT"`
+	AcInstrumentType   *AcInstrumentType     `mb2:"AC$INSTRUMENT_TYPE"`
+	AcMassSpectrometry []*AcMassSpectrometry `mb2:"AC$MASS_SPECTROMETRY"`
+	AcChromatography   []*AcChromatography   `mb2:"AC$CHROMATOGRAPHY"`
+	AcGeneral          []*AcGeneral          `mb2:"AC$GENERAL"`
+	MsFocusedIon       []*MsFocusedIon       `mb2:"MS$FOCUSED_ION"`
+	MsDataProcessing   []*MsDataProcessing   `mb2:"MS$DATA_PROCESSING"`
+	PkSplash           *PkSplash             `mb2:"PK$SPLASH"`
+	PkAnnotation       *PkAnnotation         `mb2:"PK$ANNOTATION"`
+	PkNumPeak          *PkNumPeak            `mb2:"PK$NUM_PEAK"`
+	PkPeak             *PkPeak               `mb2:"PK$PEAK"`
 }
 
 type RecordAccession struct {
@@ -369,14 +369,12 @@ func (mb *Massbank) ParseFile(fileName string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "//") {
 			// ignore comment
-			lineNum++
 		} else if strings.HasPrefix(line, "  ") {
 			if lastTag == "PK$PEAK" {
 				var pv PeakValue
@@ -385,7 +383,6 @@ func (mb *Massbank) ParseFile(fileName string) error {
 				} else {
 					mb.PkPeak.Values = append(mb.PkPeak.Values, pv)
 				}
-				lineNum++
 			} else {
 				println("not implemented", line)
 			}
@@ -422,6 +419,7 @@ func (mb *Massbank) ParseFile(fileName string) error {
 		}
 		lineNum++
 	}
+	file.Close()
 	return nil
 }
 
@@ -450,6 +448,11 @@ func buildTags() {
 		props.Name = field.Name
 		props.Type = field.Type
 		props.Index = field.Index
-		TagMap[field.Tag.Get("mb")] = props
+		tag := field.Tag.Get("mb2")
+		subtag := field.Tag.Get("mb2st")
+		if subtag != "" {
+			subtag = ":" + subtag
+		}
+		TagMap[tag] = props
 	}
 }
