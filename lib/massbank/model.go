@@ -67,39 +67,49 @@ type tagProperties struct {
 var TagMap = map[string]tagProperties{}
 
 type Massbank struct {
-	Accession          *RecordAccession      `mb2:"ACCESSION"`
-	Deprecated         *RecordDeprecated     `mb2:"DEPRECATED"`
-	RecordTitle        *RecordTitle          `mb2:"RECORD_TITLE"`
-	Date               *RecordDate           `mb2:"DATE"`
-	Authors            *RecordAuthorNames    `mb2:"AUTHORS"`
-	License            *RecordLicense        `mb2:"LICENSE"`
-	Copyright          *RecordCopyright      `mb2:"COPYRIGHT"`
-	Publication        *RecordPublication    `mb2:"PUBLICATION"`
-	Project            *RecordProject        `mb2:"PROJECT"`
-	Comments           []*RecordComment      `mb2:"COMMENT"`
-	ChNames            []*ChName             `mb2:"CH$NAME"`
-	ChClass            *ChCompoundClasses    `mb2:"CH$COMPOUND_CLASS"`
-	ChFormula          *ChFormula            `mb2:"CH$FORMULA"`
-	ChCdkDepict        []*CdkDepict          `mb2:"CH$CDK_DEPICT"` // not for productive use
-	ChMass             *ChMass               `mb2:"CH$EXACT_MASS"`
-	ChSmiles           *ChSmiles             `mb2:"CH$SMILES"`
-	ChInchi            *ChInchi              `mb2:"CH$IUPAC"`
-	ChLink             []*ChLink             `mb2:"CH$LINK"`
-	SpName             *SpName               `mb2:"SP$SCIENTIFIC_NAME"`
-	SpLineage          *SpLineage            `mb2:"SP$LINEAGE"`
-	SpLink             []*SpLink             `mb2:"SP$LINK"`
-	SpSample           []*SampleInformation  `mb2:"SP$SAMPLE"`
-	AcInstrument       *AcInstrument         `mb2:"AC$INSTRUMENT"`
-	AcInstrumentType   *AcInstrumentType     `mb2:"AC$INSTRUMENT_TYPE"`
-	AcMassSpectrometry []*AcMassSpectrometry `mb2:"AC$MASS_SPECTROMETRY"`
-	AcChromatography   []*AcChromatography   `mb2:"AC$CHROMATOGRAPHY"`
-	AcGeneral          []*AcGeneral          `mb2:"AC$GENERAL"`
-	MsFocusedIon       []*MsFocusedIon       `mb2:"MS$FOCUSED_ION"`
-	MsDataProcessing   []*MsDataProcessing   `mb2:"MS$DATA_PROCESSING"`
-	PkSplash           *PkSplash             `mb2:"PK$SPLASH"`
-	PkAnnotation       *PkAnnotation         `mb2:"PK$ANNOTATION"`
-	PkNumPeak          *PkNumPeak            `mb2:"PK$NUM_PEAK"`
-	PkPeak             *PkPeak               `mb2:"PK$PEAK"`
+	Accession   *RecordAccession   `mb2:"ACCESSION"`
+	Deprecated  *RecordDeprecated  `mb2:"DEPRECATED"`
+	RecordTitle *RecordTitle       `mb2:"RECORD_TITLE"`
+	Date        *RecordDate        `mb2:"DATE"`
+	Authors     *RecordAuthorNames `mb2:"AUTHORS"`
+	License     *RecordLicense     `mb2:"LICENSE"`
+	Copyright   *RecordCopyright   `mb2:"COPYRIGHT"`
+	Publication *RecordPublication `mb2:"PUBLICATION"`
+	Project     *RecordProject     `mb2:"PROJECT"`
+	Comments    []*RecordComment   `mb2:"COMMENT"`
+	Compound    struct {
+		Names     []*ChName          `mb2:"CH$NAME"`
+		Class     *ChCompoundClasses `mb2:"CH$COMPOUND_CLASS"`
+		Formula   *ChFormula         `mb2:"CH$FORMULA"`
+		CdkDepict []*CdkDepict       `mb2:"CH$CDK_DEPICT"` // not for productive use
+		Mass      *ChMass            `mb2:"CH$EXACT_MASS"`
+		Smiles    *ChSmiles          `mb2:"CH$SMILES"`
+		Inchi     *ChInchi           `mb2:"CH$IUPAC"`
+		Link      []*ChLink          `mb2:"CH$LINK"`
+	}
+	Species struct {
+		Name    *SpName              `mb2:"SP$SCIENTIFIC_NAME"`
+		Lineage *SpLineage           `mb2:"SP$LINEAGE"`
+		Link    []*SpLink            `mb2:"SP$LINK"`
+		Sample  []*SampleInformation `mb2:"SP$SAMPLE"`
+	}
+	Acquisition struct {
+		Instrument       *AcInstrument         `mb2:"AC$INSTRUMENT"`
+		InstrumentType   *AcInstrumentType     `mb2:"AC$INSTRUMENT_TYPE"`
+		MassSpectrometry []*AcMassSpectrometry `mb2:"AC$MASS_SPECTROMETRY"`
+		Chromatography   []*AcChromatography   `mb2:"AC$CHROMATOGRAPHY"`
+		General          []*AcGeneral          `mb2:"AC$GENERAL"`
+	}
+	MassSpectrometry struct {
+		FocusedIon     []*MsFocusedIon     `mb2:"MS$FOCUSED_ION"`
+		DataProcessing []*MsDataProcessing `mb2:"MS$DATA_PROCESSING"`
+	}
+	Peak struct {
+		Splash     *PkSplash     `mb2:"PK$SPLASH"`
+		Annotation *PkAnnotation `mb2:"PK$ANNOTATION"`
+		NumPeak    *PkNumPeak    `mb2:"PK$NUM_PEAK"`
+		Peak       *PkPeak       `mb2:"PK$PEAK"`
+	}
 }
 
 type RecordAccession struct {
@@ -381,7 +391,7 @@ func (mb *Massbank) ParseFile(fileName string) error {
 				if err = pv.parse(strings.TrimSpace(line)); err != nil {
 					println("Could not read Peakvalue: line ", lineNum, err.Error())
 				} else {
-					mb.PkPeak.Values = append(mb.PkPeak.Values, pv)
+					mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, pv)
 				}
 			} else {
 				println("not implemented", line)
@@ -389,30 +399,7 @@ func (mb *Massbank) ParseFile(fileName string) error {
 		} else {
 			s := strings.SplitN(line, ":", 2)
 			if len(s) == 2 {
-				tagname := s[0]
-				value := strings.TrimSpace(s[1])
-				tagInfo := TagMap[tagname]
-				index := tagInfo.Index
-				mb2 := reflect.ValueOf(mb)
-				mb3 := reflect.Indirect(mb2)
-				prop := mb3.FieldByIndex(index)
-				prop2 := prop.Type().Elem()
-				if prop.Kind() == reflect.Slice {
-					prop2 = prop2.Elem()
-				}
-				newPro := reflect.New(prop2)
-				newInterf := newPro.Interface()
-				propInt := newInterf.(Property)
-				err = propInt.Parse(value)
-				lastTag = tagname
-				if err != nil {
-					println(err.Error(), line)
-				}
-				if prop.Kind() == reflect.Slice {
-					prop.Set(reflect.Append(prop, newPro))
-				} else {
-					prop.Set(newPro)
-				}
+				mb.addValue(s[0], s[1])
 			} else {
 				println("The line is not a valid massbank tag line: \n", line)
 			}
@@ -420,6 +407,32 @@ func (mb *Massbank) ParseFile(fileName string) error {
 		lineNum++
 	}
 	file.Close()
+	return nil
+}
+
+func (mb *Massbank) addValue(tagname string, value string) error {
+	tagInfo := TagMap[tagname]
+	index := tagInfo.Index
+	mb2 := reflect.ValueOf(mb)
+	mb3 := reflect.Indirect(mb2)
+	prop := mb3.FieldByIndex(index)
+	prop2 := prop.Type().Elem()
+	if prop.Kind() == reflect.Slice {
+		prop2 = prop2.Elem()
+	}
+	newPro := reflect.New(prop2)
+	newInterf := newPro.Interface()
+	propInt := newInterf.(Property)
+	err := propInt.Parse(value)
+	lastTag = tagname
+	if err != nil {
+		println(err.Error(), tagname)
+	}
+	if prop.Kind() == reflect.Slice {
+		prop.Set(reflect.Append(prop, newPro))
+	} else {
+		prop.Set(newPro)
+	}
 	return nil
 }
 
@@ -443,16 +456,29 @@ func (p *PeakValue) parse(s string) error {
 // Build an array with type information and tag strings for parsing
 func buildTags() {
 	var mb = Massbank{}
-	for _, field := range reflect.VisibleFields(reflect.TypeOf(mb)) {
-		var props = tagProperties{}
-		props.Name = field.Name
-		props.Type = field.Type
-		props.Index = field.Index
-		tag := field.Tag.Get("mb2")
-		subtag := field.Tag.Get("mb2st")
-		if subtag != "" {
-			subtag = ":" + subtag
+	mb.funcName(mb, []int{})
+}
+
+func (mb *Massbank) funcName(i interface{}, index []int) {
+	valType := reflect.TypeOf(i)
+	for _, field := range reflect.VisibleFields(valType) {
+		if field.Type.Kind() != reflect.Struct {
+			mb.addFieldToMap(field, index)
+		} else {
+			mb.funcName(reflect.ValueOf(i).FieldByIndex(field.Index).Interface(), append(index, field.Index...))
 		}
-		TagMap[tag] = props
 	}
+}
+
+func (mb *Massbank) addFieldToMap(field reflect.StructField, index []int) {
+	var props = tagProperties{}
+	props.Name = field.Name
+	props.Type = field.Type
+	props.Index = append(index, field.Index...)
+	tag := field.Tag.Get("mb2")
+	subtag := field.Tag.Get("mb2st")
+	if subtag != "" {
+		subtag = ":" + subtag
+	}
+	TagMap[tag] = props
 }
