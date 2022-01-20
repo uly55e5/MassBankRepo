@@ -1,13 +1,7 @@
 package massbank
 
 import (
-	"bufio"
-	"errors"
-	"os"
 	"reflect"
-	"regexp"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -16,7 +10,7 @@ const dateFormat = "2006.01.02"
 var lastTag string
 
 type Property interface {
-	Validate() bool
+	Validate() (bool, error)
 	Output() string
 	Parse(string) error
 }
@@ -34,28 +28,12 @@ type SubtagProperty struct {
 	subtag string
 }
 
-func (p *DefaultProperty) Validate() bool {
-	return false
-}
-
-func (p *DefaultProperty) Output() string {
+func (*DefaultProperty) Output() string {
 	return "not implemented"
 }
 
-func (p *DefaultProperty) Parse(string) error {
-	return errors.New("not implemented")
-}
-
-func (p *StringProperty) Parse(s string) error {
-	p.string = s
-	return nil
-}
-
-func (p *SubtagProperty) Parse(s string) error {
-	ss := strings.SplitN(s, " ", 2)
-	p.subtag = ss[0]
-	p.string = ss[1]
-	return nil
+func (*StringProperty) Output() string {
+	return "not implemented"
 }
 
 type tagProperties struct {
@@ -68,15 +46,15 @@ var TagMap = map[string]tagProperties{}
 
 type Massbank struct {
 	Accession   *RecordAccession   `mb2:"ACCESSION"`
-	Deprecated  *RecordDeprecated  `mb2:"DEPRECATED"`
+	Deprecated  *RecordDeprecated  `mb2:"DEPRECATED" optional:"true"`
 	RecordTitle *RecordTitle       `mb2:"RECORD_TITLE"`
 	Date        *RecordDate        `mb2:"DATE"`
 	Authors     *RecordAuthorNames `mb2:"AUTHORS"`
 	License     *RecordLicense     `mb2:"LICENSE"`
-	Copyright   *RecordCopyright   `mb2:"COPYRIGHT"`
-	Publication *RecordPublication `mb2:"PUBLICATION"`
-	Project     *RecordProject     `mb2:"PROJECT"`
-	Comments    []*RecordComment   `mb2:"COMMENT"`
+	Copyright   *RecordCopyright   `mb2:"COPYRIGHT" optional:"true"`
+	Publication *RecordPublication `mb2:"PUBLICATION" optional:"true"`
+	Project     *RecordProject     `mb2:"PROJECT" optional:"true"`
+	Comments    []*RecordComment   `mb2:"COMMENT" optional:"true"`
 	Compound    struct {
 		Names     []*ChName          `mb2:"CH$NAME"`
 		Class     *ChCompoundClasses `mb2:"CH$COMPOUND_CLASS"`
@@ -85,28 +63,28 @@ type Massbank struct {
 		Mass      *ChMass            `mb2:"CH$EXACT_MASS"`
 		Smiles    *ChSmiles          `mb2:"CH$SMILES"`
 		Inchi     *ChInchi           `mb2:"CH$IUPAC"`
-		Link      []*ChLink          `mb2:"CH$LINK"`
+		Link      []*ChLink          `mb2:"CH$LINK" optional:"true"`
 	}
 	Species struct {
-		Name    *SpName              `mb2:"SP$SCIENTIFIC_NAME"`
-		Lineage *SpLineage           `mb2:"SP$LINEAGE"`
-		Link    []*SpLink            `mb2:"SP$LINK"`
-		Sample  []*SampleInformation `mb2:"SP$SAMPLE"`
+		Name    *SpName              `mb2:"SP$SCIENTIFIC_NAME" optional:"true"`
+		Lineage *SpLineage           `mb2:"SP$LINEAGE" optional:"true"`
+		Link    []*SpLink            `mb2:"SP$LINK" optional:"true"`
+		Sample  []*SampleInformation `mb2:"SP$SAMPLE" optional:"true"`
 	}
 	Acquisition struct {
 		Instrument       *AcInstrument         `mb2:"AC$INSTRUMENT"`
 		InstrumentType   *AcInstrumentType     `mb2:"AC$INSTRUMENT_TYPE"`
-		MassSpectrometry []*AcMassSpectrometry `mb2:"AC$MASS_SPECTROMETRY"`
-		Chromatography   []*AcChromatography   `mb2:"AC$CHROMATOGRAPHY"`
-		General          []*AcGeneral          `mb2:"AC$GENERAL"`
+		MassSpectrometry []*AcMassSpectrometry `mb2:"AC$MASS_SPECTROMETRY" optional:"true"`
+		Chromatography   []*AcChromatography   `mb2:"AC$CHROMATOGRAPHY" optional:"true"`
+		General          []*AcGeneral          `mb2:"AC$GENERAL" optional:"true"`
 	}
 	MassSpectrometry struct {
-		FocusedIon     []*MsFocusedIon     `mb2:"MS$FOCUSED_ION"`
-		DataProcessing []*MsDataProcessing `mb2:"MS$DATA_PROCESSING"`
+		FocusedIon     []*MsFocusedIon     `mb2:"MS$FOCUSED_ION" optional:"true"`
+		DataProcessing []*MsDataProcessing `mb2:"MS$DATA_PROCESSING" optional:"true"`
 	}
 	Peak struct {
 		Splash     *PkSplash     `mb2:"PK$SPLASH"`
-		Annotation *PkAnnotation `mb2:"PK$ANNOTATION"`
+		Annotation *PkAnnotation `mb2:"PK$ANNOTATION" optional:"true"`
 		NumPeak    *PkNumPeak    `mb2:"PK$NUM_PEAK"`
 		Peak       *PkPeak       `mb2:"PK$PEAK"`
 	}
@@ -119,6 +97,7 @@ type RecordAccession struct {
 type RecordDeprecated struct {
 	Date   time.Time
 	Reason string
+	DefaultProperty
 }
 
 type RecordTitle struct {
@@ -131,51 +110,9 @@ type RecordDate struct {
 	Created time.Time
 }
 
-func (d *RecordDate) Parse(s string) error {
-	var err error
-	ss := strings.SplitN(s, " ", 2)
-	if len(ss) > 1 {
-		re := regexp.MustCompile("\\(Cretated (.*)\\)")
-		ss2 := re.FindStringSubmatch(ss[1])
-		if len(ss2) == 2 {
-			if d.Created, err = time.Parse(dateFormat, ss2[1]); err != nil {
-				return err
-			} else {
-				return errors.New("Format error in Date")
-			}
-		}
-	} else {
-		if d.Created, err = time.Parse(dateFormat, ss[0]); err != nil {
-			return err
-		}
-	}
-	d.Updated, err = time.Parse(dateFormat, ss[0])
-	if err != nil {
-		return err
-	}
-	return nil
-
-}
-
 type RecordAuthorNames struct {
 	DefaultProperty
 	value []RecordAuthorName
-}
-
-func (names *RecordAuthorNames) Parse(s string) error {
-	ss := strings.Split(s, ",")
-	for _, s1 := range ss {
-		re := regexp.MustCompile("(.*)([(.*)])?")
-		ss1 := re.FindStringSubmatch(s1)
-		marc := ""
-		if len(ss1) > 2 {
-			marc = ss1[2]
-		}
-		if len(ss1) > 1 {
-			names.value = append(names.value, RecordAuthorName{ss1[1], marc})
-		}
-	}
-	return nil
 }
 
 type RecordAuthorName struct {
@@ -216,15 +153,6 @@ type ChCompoundClasses struct {
 	value []ChCompoundClass
 }
 
-func (cc *ChCompoundClasses) Parse(s string) error {
-	ss := strings.Split(s, ";")
-	for _, s1 := range ss {
-		var c = ChCompoundClass(strings.TrimSpace(s1))
-		cc.value = append(cc.value, c)
-	}
-	return nil
-}
-
 type ChCompoundClass string
 
 type ChFormula struct {
@@ -234,15 +162,6 @@ type ChFormula struct {
 type ChMass struct {
 	DefaultProperty
 	value float64
-}
-
-func (mass *ChMass) Parse(s string) error {
-	var err error
-	mass.value, err = strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 type ChSmiles struct {
@@ -341,27 +260,10 @@ type PkNumPeak struct {
 	Value uint
 }
 
-func (n *PkNumPeak) Parse(s string) error {
-	val, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		return err
-	}
-	n.Value = uint(val)
-	return nil
-}
-
 type PeakValue struct {
 	mz        float64
 	intensity float64
 	rel       uint
-}
-
-func (p *PkPeak) Parse(s string) error {
-	if s != "m/z int. rel.int." {
-		return errors.New("PK$ is not valid")
-	}
-	p.Header = strings.Split(s, " ")
-	return nil
 }
 
 type TagValue struct {
@@ -370,88 +272,6 @@ type TagValue struct {
 }
 
 type TagValues []TagValue
-
-func (mb *Massbank) ParseFile(fileName string) error {
-	if len(TagMap) == 0 {
-		buildTags()
-	}
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(file)
-	lineNum := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "//") {
-			// ignore comment
-		} else if strings.HasPrefix(line, "  ") {
-			if lastTag == "PK$PEAK" {
-				var pv PeakValue
-				if err = pv.parse(strings.TrimSpace(line)); err != nil {
-					println("Could not read Peakvalue: line ", lineNum, err.Error())
-				} else {
-					mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, pv)
-				}
-			} else {
-				println("not implemented", line)
-			}
-		} else {
-			s := strings.SplitN(line, ":", 2)
-			if len(s) == 2 {
-				mb.addValue(s[0], s[1])
-			} else {
-				println("The line is not a valid massbank tag line: \n", line)
-			}
-		}
-		lineNum++
-	}
-	file.Close()
-	return nil
-}
-
-func (mb *Massbank) addValue(tagname string, value string) error {
-	tagInfo := TagMap[tagname]
-	index := tagInfo.Index
-	mb2 := reflect.ValueOf(mb)
-	mb3 := reflect.Indirect(mb2)
-	prop := mb3.FieldByIndex(index)
-	prop2 := prop.Type().Elem()
-	if prop.Kind() == reflect.Slice {
-		prop2 = prop2.Elem()
-	}
-	newPro := reflect.New(prop2)
-	newInterf := newPro.Interface()
-	propInt := newInterf.(Property)
-	err := propInt.Parse(value)
-	lastTag = tagname
-	if err != nil {
-		println(err.Error(), tagname)
-	}
-	if prop.Kind() == reflect.Slice {
-		prop.Set(reflect.Append(prop, newPro))
-	} else {
-		prop.Set(newPro)
-	}
-	return nil
-}
-
-func (p *PeakValue) parse(s string) error {
-	ss := strings.Split(s, " ")
-	var err error
-	var rel uint64
-	if p.mz, err = strconv.ParseFloat(ss[0], 32); err != nil {
-		return errors.New("Could not parse mz value")
-	}
-	if p.intensity, err = strconv.ParseFloat(ss[1], 32); err != nil {
-		return errors.New("Could not parse intensity value")
-	}
-	if rel, err = strconv.ParseUint(ss[2], 10, 32); err != nil {
-		return errors.New("Could not parse relative intensity")
-	}
-	p.rel = uint(rel)
-	return nil
-}
 
 // Build an array with type information and tag strings for parsing
 func buildTags() {
