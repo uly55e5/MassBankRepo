@@ -46,6 +46,7 @@ func validateFields(fields []reflect.StructField, val reflect.Value, t reflect.T
 					prop := field.Index(i).Interface().(Property)
 					b, err := validateProperty(prop, isOptional, t.Name())
 					if !b || err != nil {
+						println(err.Error())
 						return b, err
 					}
 				}
@@ -251,12 +252,38 @@ func isSeparation(s string) bool {
 }
 
 func (ms *AcMassSpectrometry) Validate() (bool, error) {
+	if !contains(MassSpectrometrySubList, ms.subtag) {
+		return false, errors.New(string(ms.string + " is not a Mass spectrometry subtag"))
+	}
 	switch ms.subtag {
 	case "MS_TYPE":
 		return contains(MSTypeList, ms.string), nil
 	case "ION_MODE":
 		return contains(MSIonModeList, ms.string), nil
+	case "COLLISION_ENERGY":
+	case "CAPILLARY_VOLTAGE":
+		re := "[0-9.\\-]* kV"
+		return regexp.MatchString(re, ms.string)
+	case "DESOLVATION_GAS_FLOW":
+		re := "[0-9.\\-]* L/h"
+		return regexp.MatchString(re, ms.string)
+	case "DESOLVATION_TEMPERATURE":
+		re := "[0-9.\\-]* C"
+		return regexp.MatchString(re, ms.string)
+	case "FRAGMENTATION_MODE":
+		return contains(MSFragmentationModeList, ms.string), nil
+	case "IONIZATION":
+		return contains(MSIonizationList, ms.string), nil
+	case "IONIZATION_ENERGY":
+		return regexp.MatchString("[0-9]* eV", ms.string)
+	case "MASS_RANGE_M/Z":
+		return regexp.MatchString("[0-9]*-[0-9]*", ms.string)
+	case "DATE":
+	case "LASER":
+	case "MATRIX":
+	case "MASS_ACCURACY":
 	default:
 		return isUpperCase(ms.subtag) && ms.string != "", nil
 	}
+	return isUpperCase(ms.subtag) && ms.string != "", nil
 }
