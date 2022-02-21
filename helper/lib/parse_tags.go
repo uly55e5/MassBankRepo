@@ -21,6 +21,7 @@ type Mode int
 const (
 	Tags Mode = iota
 	Stats
+	UniqueVals
 )
 
 var mode Mode = Tags
@@ -80,7 +81,7 @@ func ReadTags(path string, info os.FileInfo, err error) error {
 	switch mode {
 	case Tags:
 		processTags = addToTag
-	case Stats:
+	case Stats, UniqueVals:
 		processTags = buildStatistics
 	}
 	if strings.HasSuffix(info.Name(), ".txt") {

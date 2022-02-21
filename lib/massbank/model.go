@@ -56,15 +56,15 @@ type Massbank struct {
 	Project     *RecordProject     `mb2:"PROJECT" optional:"true"`
 	Comments    []*RecordComment   `mb2:"COMMENT" optional:"true"`
 	Compound    struct {
-		Names     []*ChName          `mb2:"CH$NAME"`
-		Class     *ChCompoundClasses `mb2:"CH$COMPOUND_CLASS"`
-		Formula   *ChFormula         `mb2:"CH$FORMULA"`
-		CdkDepict []*CdkDepict       `mb2:"CH$CDK_DEPICT"` // not for productive use
-		Mass      *ChMass            `mb2:"CH$EXACT_MASS"`
-		Smiles    *ChSmiles          `mb2:"CH$SMILES"`
-		Inchi     *ChInchi           `mb2:"CH$IUPAC"`
-		Link      []*ChLink          `mb2:"CH$LINK" optional:"true"`
-	}
+		Names     []*ChName          `mb2:"CH$NAME" json:"name"`
+		Classes   *ChCompoundClasses `mb2:"CH$COMPOUND_CLASS" json:"classes"`
+		Formula   *ChFormula         `mb2:"CH$FORMULA json:formula"`
+		CdkDepict []*CdkDepict       `mb2:"CH$CDK_DEPICT" json:"cdk-depict"` // not for productive use
+		Mass      *ChMass            `mb2:"CH$EXACT_MASS" json:"mass"`
+		Smiles    *ChSmiles          `mb2:"CH$SMILES" json:"smiles"`
+		Inchi     *ChInchi           `mb2:"CH$IUPAC" json:"inchi"`
+		Link      []*ChLink          `mb2:"CH$LINK" optional:"true" json:"link"`
+	} `json:"Compound"`
 	Species struct {
 		Name    *SpName              `mb2:"SP$SCIENTIFIC_NAME" optional:"true"`
 		Lineage *SpLineage           `mb2:"SP$LINEAGE" optional:"true"`
