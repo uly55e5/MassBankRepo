@@ -84,16 +84,17 @@ func ReadTags(path string, info os.FileInfo, err error) error {
 	case Stats, UniqueVals:
 		processTags = buildStatistics
 	}
-	if strings.HasSuffix(info.Name(), ".txt") {
+	if info != nil && strings.HasSuffix(info.Name(), ".txt") {
 		filesN += 1
 		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
 		scanner := bufio.NewScanner(file)
+		var parts = make([]string, 3)
 		for scanner.Scan() {
 			line := scanner.Text()
-			parts := strings.SplitN(line, " ", 3)
+			parts = strings.SplitN(line, " ", 3)
 			if len(parts) > 0 && len(parts[0]) > 0 && !strings.HasPrefix(line, "//") {
 				tag := strings.Trim(parts[0], ": ")
 				subtag := ""
@@ -133,7 +134,7 @@ func buildStatistics(tag string, subtag string, value string) {
 	var statVals = subtags[subtag]
 	if statVals.uniqueVals == nil {
 		statVals.uniqueVals = map[string]bool{value: true}
-	} else {
+	} else if _, ok := statVals.uniqueVals[value]; !ok {
 		statVals.uniqueVals[value] = true
 	}
 	statVals.frequency += 1

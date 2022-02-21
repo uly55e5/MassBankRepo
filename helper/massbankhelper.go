@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	//defer profile.Start(profile.ProfilePath(".")).Stop()
 	mbPath := flag.String("f", "", "path to massbank data")
 	outFile := flag.String("o", "mbParser-out.txt", "name of the output file")
 	stats := flag.Bool("s", false, "output statistics")
