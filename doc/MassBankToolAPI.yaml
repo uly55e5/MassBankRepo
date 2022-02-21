@@ -1,0 +1,82 @@
+openapi: '3.0.3'
+info:
+  title: MassBank Tool API
+  version: "0.1"
+servers:
+  - url: https://localhost:8000/
+components:
+  schemas:
+    SpectrumListItem:
+      type: object
+      properties:
+        accession:
+          type: string
+      additionalProperties:
+        type: string
+    Spectrum:
+      type: object
+      properties:
+        accession:
+          type: string
+      additionalProperties:
+        type: string
+  parameters:
+    offsetParam:
+      name: offset
+      in: query
+      description: the offset of items
+      schema:
+        type: integer
+        format: int64
+    limitParam:
+      name: limit
+      in: query
+      description: number of items
+      schema:
+        type: integer
+        format: int64
+    pageParam:
+      name: page
+      in: query
+      description: the page number
+      schema:
+        type: integer
+        format: int64
+    accession:
+      name: accession
+      in: path
+      description: an accession id
+      required: true
+      schema:
+        type: string
+
+paths:
+  /spectra:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/offsetParam'
+        - $ref: '#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: A list of spectra
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#components/schemas/SpectrumListItem'
+  /spectra/{accession}:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/accession'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spectrum'
+        '404':
+          description: Not Found
+
