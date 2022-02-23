@@ -1,0 +1,1 @@
+node_modules/.bin/openapi-generator-cli generate -g go-server -i doc/MassBankToolAPI.yaml -o api-server -p router=chi,addResponseHeaders=true,featureCORS=true,hideGenerationTimestamp=false,sourceFolder=openapi

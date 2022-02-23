@@ -1,1 +1,0 @@
-node_modules/.bin/openapi-generator-cli generate -i doc/MassBankToolAPI.yaml -o api_server/ -g go-server

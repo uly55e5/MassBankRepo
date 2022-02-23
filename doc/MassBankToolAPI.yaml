@@ -3,11 +3,13 @@ info:
   title: MassBank Tool API
   version: "0.1"
 servers:
-  - url: https://localhost:8000/
+  - url: https://localhost:8080/
 components:
   schemas:
     SpectrumListItem:
       type: object
+      required:
+        - accession
       properties:
         accession:
           type: string
@@ -15,6 +17,8 @@ components:
         type: string
     Spectrum:
       type: object
+      required:
+        - accession
       properties:
         accession:
           type: string
@@ -65,7 +69,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#components/schemas/SpectrumListItem'
+                  $ref: '#/components/schemas/SpectrumListItem'
   /spectra/{accession}:
     get:
       parameters:

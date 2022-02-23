@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: MassBank Tool API
+  version: "0.1"
+servers:
+- url: https://localhost:8080/
+paths:
+  /spectra:
+    get:
+      parameters:
+      - description: number of items
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      - description: the offset of items
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      - description: the page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpectrumListItem'
+                type: array
+          description: A list of spectra
+  /spectra/{accession}:
+    get:
+      parameters:
+      - description: an accession id
+        explode: false
+        in: path
+        name: accession
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spectrum'
+          description: OK
+        "404":
+          description: Not Found
+components:
+  parameters:
+    offsetParam:
+      description: the offset of items
+      explode: true
+      in: query
+      name: offset
+      required: false
+      schema:
+        format: int64
+        type: integer
+      style: form
+    limitParam:
+      description: number of items
+      explode: true
+      in: query
+      name: limit
+      required: false
+      schema:
+        format: int64
+        type: integer
+      style: form
+    pageParam:
+      description: the page number
+      explode: true
+      in: query
+      name: page
+      required: false
+      schema:
+        format: int64
+        type: integer
+      style: form
+    accession:
+      description: an accession id
+      explode: false
+      in: path
+      name: accession
+      required: true
+      schema:
+        type: string
+      style: simple
+  schemas:
+    SpectrumListItem:
+      additionalProperties:
+        type: string
+      example:
+        accession: accession
+      properties:
+        accession:
+          type: string
+      required:
+      - accession
+      type: object
+    Spectrum:
+      additionalProperties:
+        type: string
+      example:
+        accession: accession
+      properties:
+        accession:
+          type: string
+      required:
+      - accession
+      type: object
