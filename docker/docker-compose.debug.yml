@@ -1,0 +1,12 @@
+services:
+  mongo:
+    ports:
+      - "27017:27017"
+  api-server:
+    build:
+      context: ../api-server/
+      dockerfile: Dockerfile-debug
+  meilisearch:
+    image: getmeili/meilisearch
+    ports:
+      - "7700:7700"
