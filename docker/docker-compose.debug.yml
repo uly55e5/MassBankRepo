@@ -10,3 +10,9 @@ services:
     image: getmeili/meilisearch
     ports:
       - "7700:7700"
+  web-frontend:
+    build:
+      context: ../web-frontend
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ../web-frontend:/app
