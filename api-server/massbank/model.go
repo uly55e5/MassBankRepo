@@ -58,7 +58,7 @@ type Massbank struct {
 	Compound    struct {
 		Names     []*ChName          `mb2:"CH$NAME" json:"name"`
 		Classes   *ChCompoundClasses `mb2:"CH$COMPOUND_CLASS" json:"classes"`
-		Formula   *ChFormula         `mb2:"CH$FORMULA json:formula"`
+		Formula   *ChFormula         `mb2:"CH$FORMULA" json:"formula"`
 		CdkDepict []*CdkDepict       `mb2:"CH$CDK_DEPICT" json:"cdk-depict"` // not for productive use
 		Mass      *ChMass            `mb2:"CH$EXACT_MASS" json:"mass"`
 		Smiles    *ChSmiles          `mb2:"CH$SMILES" json:"smiles"`

@@ -1,8 +1,7 @@
 FROM golang:1.17 AS build
 WORKDIR /go/src
-COPY openapi ./openapi
-COPY main.go .
-COPY go.mod .
+COPY . .
+VOLUME /var/log
 
 ENV CGO_ENABLED=0
 RUN go get -d -v ./...
@@ -12,6 +11,7 @@ RUN go build -a -gcflags="all=-N -l" -installsuffix cgo -o openapi .
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 FROM scratch AS runtime
+VOLUME /tmp
 COPY --from=build /go/src/openapi ./
 COPY --from=build /go/bin/dlv /
 EXPOSE 8080/tcp 40000

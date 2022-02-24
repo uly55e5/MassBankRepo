@@ -11,7 +11,10 @@ package openapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/uly55e5/MassBankRepo/api-server/database"
+	"github.com/uly55e5/MassBankRepo/api-server/massbank"
 	"net/http"
 	"os"
 )
@@ -22,9 +25,15 @@ import (
 type DefaultApiService struct {
 }
 
-func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, s2 string, file *os.File) (ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, filename string, file *os.File) (ImplResponse, error) {
+	mb := massbank.Massbank{}
+	mb.ParseFile(file.Name())
+	id, err := database.InsertMassbank(mb)
+	if err != nil {
+		return Response(http.StatusInternalServerError, nil), err
+	}
+	js, _ := json.Marshal(struct{ Id string }{id})
+	return Response(http.StatusOK, string(js)), nil
 }
 
 // NewDefaultApiService creates a default api service

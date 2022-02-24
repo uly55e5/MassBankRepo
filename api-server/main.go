@@ -10,14 +10,22 @@
 package main
 
 import (
+	"github.com/uly55e5/MassBankRepo/api-server/openapi"
+	"github.com/uly55e5/MassBankRepo/api-server/server"
 	"log"
 	"net/http"
-
-	openapi "github.com/uly55e5/MassBankRepo/api-server/openapi"
+	"os"
 )
 
 func main() {
-	log.Printf("Server started")
+	logFile, err := os.OpenFile("/var/log/massbank-server.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(logFile)
+
+	server.Init()
+	defer server.Close()
 
 	DefaultApiService := openapi.NewDefaultApiService()
 	DefaultApiController := openapi.NewDefaultApiController(DefaultApiService)
