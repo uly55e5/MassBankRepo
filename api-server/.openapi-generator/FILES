@@ -1,11 +1,6 @@
-Dockerfile
-README.md
 api/openapi.yaml
-go.mod
-main.go
 openapi/api.go
 openapi/api_default.go
-openapi/api_default_service.go
 openapi/error.go
 openapi/helpers.go
 openapi/impl.go

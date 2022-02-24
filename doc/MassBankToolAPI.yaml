@@ -57,6 +57,7 @@ components:
 paths:
   /spectra:
     get:
+      operationId: getAllSpectra
       parameters:
         - $ref: '#/components/parameters/limitParam'
         - $ref: '#/components/parameters/offsetParam'
@@ -70,8 +71,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SpectrumListItem'
+  /spectra/info:
+    get:
+      operationId: getAllSpectraInfo
+      parameters:
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/offsetParam'
+        - $ref: '#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: A list of spectra
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpectrumListItem'
+
   /spectra/{accession}:
     get:
+      operationId: getSpectrum
       parameters:
         - $ref: '#/components/parameters/accession'
       responses:

@@ -7,6 +7,47 @@ servers:
 paths:
   /spectra:
     get:
+      operationId: getAllSpectra
+      parameters:
+      - description: number of items
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      - description: the offset of items
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      - description: the page number
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpectrumListItem'
+                type: array
+          description: A list of spectra
+  /spectra/info:
+    get:
+      operationId: getAllSpectraInfo
       parameters:
       - description: number of items
         explode: true
@@ -46,6 +87,7 @@ paths:
           description: A list of spectra
   /spectra/{accession}:
     get:
+      operationId: getSpectrum
       parameters:
       - description: an accession id
         explode: false

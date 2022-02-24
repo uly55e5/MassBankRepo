@@ -18,8 +18,9 @@ import (
 // The DefaultApiRouter implementation should parse necessary information from the http request,
 // pass the data to a DefaultApiServicer to perform the required actions, then write the service results to the http response.
 type DefaultApiRouter interface {
-	SpectraAccessionGet(http.ResponseWriter, *http.Request)
-	SpectraGet(http.ResponseWriter, *http.Request)
+	GetAllSpectra(http.ResponseWriter, *http.Request)
+	GetAllSpectraInfo(http.ResponseWriter, *http.Request)
+	GetSpectrum(http.ResponseWriter, *http.Request)
 }
 
 // DefaultApiServicer defines the api actions for the DefaultApi service
@@ -27,6 +28,7 @@ type DefaultApiRouter interface {
 // while the service implementation can ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type DefaultApiServicer interface {
-	SpectraAccessionGet(context.Context, string) (ImplResponse, error)
-	SpectraGet(context.Context, int64, int64, int64) (ImplResponse, error)
+	GetAllSpectra(context.Context, int64, int64, int64) (ImplResponse, error)
+	GetAllSpectraInfo(context.Context, int64, int64, int64) (ImplResponse, error)
+	GetSpectrum(context.Context, string) (ImplResponse, error)
 }

@@ -1,0 +1,13 @@
+generatorName: go-server
+inputSpec: doc/MassBankToolAPI.yaml
+outputDir: api-server
+templateDir: api-server-generate/templates
+modelTests: true
+apiTests: true
+additionalProperties:
+  router: chi
+  addResponseHeaders: true
+  featureCORS: true
+  hideGenerationTimestamp: false
+  sourceFolder: openapi
+enablePostProcessFile: true

@@ -10,7 +10,7 @@
 package openapi
 
 import (
-	_ "encoding/json"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -51,37 +51,28 @@ func NewDefaultApiController(s DefaultApiServicer, opts ...DefaultApiOption) Rou
 func (c *DefaultApiController) Routes() Routes {
 	return Routes{
 		{
-			"SpectraAccessionGet",
-			strings.ToUpper("Get"),
-			"/spectra/{accession}",
-			c.SpectraAccessionGet,
-		},
-		{
-			"SpectraGet",
+			"GetAllSpectra",
 			strings.ToUpper("Get"),
 			"/spectra",
-			c.SpectraGet,
+			c.GetAllSpectra,
+		},
+		{
+			"GetAllSpectraInfo",
+			strings.ToUpper("Get"),
+			"/spectra/info",
+			c.GetAllSpectraInfo,
+		},
+		{
+			"GetSpectrum",
+			strings.ToUpper("Get"),
+			"/spectra/{accession}",
+			c.GetSpectrum,
 		},
 	}
 }
 
-// SpectraAccessionGet -
-func (c *DefaultApiController) SpectraAccessionGet(w http.ResponseWriter, r *http.Request) {
-	accessionParam := chi.URLParam(r, "accession")
-
-	result, err := c.service.SpectraAccessionGet(r.Context(), accessionParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-
-}
-
-// SpectraGet -
-func (c *DefaultApiController) SpectraGet(w http.ResponseWriter, r *http.Request) {
+// GetAllSpectra -
+func (c *DefaultApiController) GetAllSpectra(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	limitParam, err := parseInt64Parameter(query.Get("limit"), false)
 	if err != nil {
@@ -98,7 +89,51 @@ func (c *DefaultApiController) SpectraGet(w http.ResponseWriter, r *http.Request
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	result, err := c.service.SpectraGet(r.Context(), limitParam, offsetParam, pageParam)
+	result, err := c.service.GetAllSpectra(r.Context(), limitParam, offsetParam, pageParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+
+}
+
+// GetAllSpectraInfo -
+func (c *DefaultApiController) GetAllSpectraInfo(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	limitParam, err := parseInt64Parameter(query.Get("limit"), false)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	offsetParam, err := parseInt64Parameter(query.Get("offset"), false)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	pageParam, err := parseInt64Parameter(query.Get("page"), false)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	result, err := c.service.GetAllSpectraInfo(r.Context(), limitParam, offsetParam, pageParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+
+}
+
+// GetSpectrum -
+func (c *DefaultApiController) GetSpectrum(w http.ResponseWriter, r *http.Request) {
+	accessionParam := chi.URLParam(r, "accession")
+
+	result, err := c.service.GetSpectrum(r.Context(), accessionParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

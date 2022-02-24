@@ -26,9 +26,31 @@ func NewDefaultApiService() DefaultApiServicer {
 	return &DefaultApiService{}
 }
 
-// SpectraAccessionGet -
-func (s *DefaultApiService) SpectraAccessionGet(ctx context.Context, accession string) (ImplResponse, error) {
-	// TODO - update SpectraAccessionGet with the required logic for this service method.
+// GetAllSpectra -
+func (s *DefaultApiService) GetAllSpectra(ctx context.Context, limit int64, offset int64, page int64) (ImplResponse, error) {
+	// TODO - update GetAllSpectra with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, []SpectrumListItem{}) or use other options such as http.Ok ...
+	//return Response(200, []SpectrumListItem{}), nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("GetAllSpectra method not implemented")
+}
+
+// GetAllSpectraInfo -
+func (s *DefaultApiService) GetAllSpectraInfo(ctx context.Context, limit int64, offset int64, page int64) (ImplResponse, error) {
+	// TODO - update GetAllSpectraInfo with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, []SpectrumListItem{}) or use other options such as http.Ok ...
+	//return Response(200, []SpectrumListItem{}), nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("GetAllSpectraInfo method not implemented")
+}
+
+// GetSpectrum -
+func (s *DefaultApiService) GetSpectrum(ctx context.Context, accession string) (ImplResponse, error) {
+	// TODO - update GetSpectrum with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
 	//TODO: Uncomment the next line to return response Response(200, Spectrum{}) or use other options such as http.Ok ...
@@ -37,16 +59,5 @@ func (s *DefaultApiService) SpectraAccessionGet(ctx context.Context, accession s
 	//TODO: Uncomment the next line to return response Response(404, {}) or use other options such as http.Ok ...
 	//return Response(404, nil),nil
 
-	return Response(http.StatusNotImplemented, nil), errors.New("SpectraAccessionGet method not implemented")
-}
-
-// SpectraGet -
-func (s *DefaultApiService) SpectraGet(ctx context.Context, limit int64, offset int64, page int64) (ImplResponse, error) {
-	// TODO - update SpectraGet with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(200, []SpectrumListItem{}) or use other options such as http.Ok ...
-	//return Response(200, []SpectrumListItem{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("SpectraGet method not implemented")
+	return Response(http.StatusNotImplemented, nil), errors.New("GetSpectrum method not implemented")
 }

@@ -21,3 +21,9 @@
 #docs/*.md
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
+
+Dockerfile
+openapi/api_default_service.go
+README.md
+main.go
+go.mod
