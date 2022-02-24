@@ -1,6 +1,8 @@
 package massbank
 
 import (
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"reflect"
 	"time"
 )
@@ -21,6 +23,10 @@ type DefaultProperty struct {
 type StringProperty struct {
 	string
 	DefaultProperty
+}
+
+func (p StringProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	return bson.MarshalValue(p.string)
 }
 
 type SubtagProperty struct {
