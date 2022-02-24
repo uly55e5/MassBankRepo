@@ -102,4 +102,19 @@ paths:
                 $ref: '#/components/schemas/Spectrum'
         '404':
           description: Not Found
-
+  /upload/massbank:
+    post:
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                file:
+                  type: string
+                  format: binary

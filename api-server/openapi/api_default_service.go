@@ -13,12 +13,18 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
+}
+
+func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, s2 string, file *os.File) (ImplResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 // NewDefaultApiService creates a default api service

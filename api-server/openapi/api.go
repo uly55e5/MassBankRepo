@@ -12,6 +12,7 @@ package openapi
 import (
 	"context"
 	"net/http"
+	"os"
 )
 
 // DefaultApiRouter defines the required methods for binding the api requests to a responses for the DefaultApi
@@ -21,6 +22,7 @@ type DefaultApiRouter interface {
 	GetAllSpectra(http.ResponseWriter, *http.Request)
 	GetAllSpectraInfo(http.ResponseWriter, *http.Request)
 	GetSpectrum(http.ResponseWriter, *http.Request)
+	UploadMassbankPost(http.ResponseWriter, *http.Request)
 }
 
 // DefaultApiServicer defines the api actions for the DefaultApi service
@@ -31,4 +33,5 @@ type DefaultApiServicer interface {
 	GetAllSpectra(context.Context, int64, int64, int64) (ImplResponse, error)
 	GetAllSpectraInfo(context.Context, int64, int64, int64) (ImplResponse, error)
 	GetSpectrum(context.Context, string) (ImplResponse, error)
+	UploadMassbankPost(context.Context, string, *os.File) (ImplResponse, error)
 }

@@ -10,7 +10,6 @@
 package openapi
 
 import (
-	_ "encoding/json"
 	"net/http"
 	"strings"
 
@@ -67,6 +66,12 @@ func (c *DefaultApiController) Routes() Routes {
 			strings.ToUpper("Get"),
 			"/spectra/{accession}",
 			c.GetSpectrum,
+		},
+		{
+			"UploadMassbankPost",
+			strings.ToUpper("Post"),
+			"/upload/massbank",
+			c.UploadMassbankPost,
 		},
 	}
 }
@@ -134,6 +139,30 @@ func (c *DefaultApiController) GetSpectrum(w http.ResponseWriter, r *http.Reques
 	accessionParam := chi.URLParam(r, "accession")
 
 	result, err := c.service.GetSpectrum(r.Context(), accessionParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+
+}
+
+// UploadMassbankPost -
+func (c *DefaultApiController) UploadMassbankPost(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	filenameParam := r.FormValue("filename")
+
+	fileParam, err := ReadFormFileToTempFile(r, "file")
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	result, err := c.service.UploadMassbankPost(r.Context(), filenameParam, fileParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
