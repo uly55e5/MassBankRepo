@@ -1,8 +1,8 @@
 package main
 
 import (
-	"MassBankRepo/helper/lib"
 	"flag"
+	"github.com/uly55e5/MassBankRepo/helper/lib"
 	"path/filepath"
 )
 

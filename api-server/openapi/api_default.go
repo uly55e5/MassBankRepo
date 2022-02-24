@@ -10,7 +10,7 @@
 package openapi
 
 import (
-	"encoding/json"
+	_ "encoding/json"
 	"net/http"
 	"strings"
 

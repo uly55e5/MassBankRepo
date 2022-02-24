@@ -1,4 +1,3 @@
-module github.com/GIT_USER_ID/GIT_REPO_ID
+module github.com/uly55e5/MassBankRepo
 
-go 1.13
-
+go 1.17
