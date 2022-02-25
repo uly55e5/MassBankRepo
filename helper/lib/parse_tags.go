@@ -67,7 +67,7 @@ func outputTags(file *os.File) {
 func outputStats(file *os.File) {
 	for t, st := range stats {
 		for stt, v := range st {
-			s := t + " " + stt + ":  " + strconv.Itoa(v.frequency) + " / " + strconv.Itoa(len(v.uniqueVals))
+			s := t + " " + stt + ":  " + strconv.Itoa(v.frequency) + " / " + strconv.Itoa(len(v.uniqueVals)) + "\n"
 			file.WriteString(s)
 			println(s)
 		}
