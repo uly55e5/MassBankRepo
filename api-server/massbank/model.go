@@ -3,9 +3,6 @@ package massbank
 import (
 	"reflect"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 const dateFormat = "2006.01.02"
@@ -26,35 +23,9 @@ type StringProperty struct {
 	DefaultProperty
 }
 
-func (p StringProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.string)
-}
-
-func (p SubtagProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	/*	structType := reflect.StructOf([]reflect.StructField{
-			{
-				Name: p.subtag,
-				Type: reflect.TypeOf(p.string),
-				Tag:  ``,
-			},
-		})
-		v := reflect.New(structType).Elem()
-		v.Field(0).SetString(p.string) */
-	m := map[string]string{p.subtag: p.string}
-	return bson.MarshalValue(m)
-}
-
 type SubtagProperty struct {
 	StringProperty
 	subtag string
-}
-
-func (*DefaultProperty) Output() string {
-	return "not implemented"
-}
-
-func (*StringProperty) Output() string {
-	return "not implemented"
 }
 
 type tagProperties struct {
@@ -121,13 +92,6 @@ type RecordDeprecated struct {
 	DefaultProperty
 }
 
-func (p RecordDeprecated) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		Date   time.Time
-		reason string
-	}{p.Date, p.Reason})
-}
-
 type RecordTitle struct {
 	StringProperty
 }
@@ -138,20 +102,9 @@ type RecordDate struct {
 	Created time.Time
 }
 
-func (p RecordDate) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		updated time.Time
-		created time.Time
-	}{p.Updated, p.Created})
-}
-
 type RecordAuthorNames struct {
 	DefaultProperty
 	value []RecordAuthorName
-}
-
-func (p RecordAuthorNames) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.value)
 }
 
 type RecordAuthorName struct {
@@ -192,10 +145,6 @@ type ChCompoundClasses struct {
 	value []ChCompoundClass
 }
 
-func (p ChCompoundClasses) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.value)
-}
-
 type ChCompoundClass string
 
 type ChFormula struct {
@@ -205,10 +154,6 @@ type ChFormula struct {
 type ChMass struct {
 	DefaultProperty
 	value float64
-}
-
-func (p ChMass) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.value)
 }
 
 type ChSmiles struct {
@@ -240,10 +185,6 @@ type SpLineage struct {
 	value []SpLineageElement
 }
 
-func (p SpLineage) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.value)
-}
-
 type SpLineageElement struct {
 	StringProperty
 }
@@ -252,13 +193,6 @@ type SpLink struct {
 	DefaultProperty
 	Database   string
 	Identifier string
-}
-
-func (p SpLink) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		database   string
-		identifier string
-	}{p.Database, p.Identifier})
 }
 
 type SampleInformation struct {
@@ -294,13 +228,6 @@ type PkPeak struct {
 	Values []PeakValue
 }
 
-func (p PkPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		header []string
-		values []PeakValue
-	}{p.Header, p.Values})
-}
-
 type MsFocusedIon struct {
 	SubtagProperty
 }
@@ -320,20 +247,9 @@ type PkAnnotation struct {
 	Values []AnnotationValue
 }
 
-func (p PkAnnotation) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		header []string
-		values []AnnotationValue
-	}{p.Header, p.Values})
-}
-
 type PkNumPeak struct {
 	DefaultProperty
 	Value uint
-}
-
-func (p PkNumPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(p.Value)
 }
 
 type PeakValue struct {
@@ -352,16 +268,16 @@ type TagValues []TagValue
 // Build an array with type information and tag strings for parsing
 func buildTags() {
 	var mb = Massbank{}
-	mb.funcName(mb, []int{})
+	mb.addTagField(mb, []int{})
 }
 
-func (mb *Massbank) funcName(i interface{}, index []int) {
+func (mb *Massbank) addTagField(i interface{}, index []int) {
 	valType := reflect.TypeOf(i)
 	for _, field := range reflect.VisibleFields(valType) {
 		if field.Type.Kind() != reflect.Struct {
 			mb.addFieldToMap(field, index)
 		} else {
-			mb.funcName(reflect.ValueOf(i).FieldByIndex(field.Index).Interface(), append(index, field.Index...))
+			mb.addTagField(reflect.ValueOf(i).FieldByIndex(field.Index).Interface(), append(index, field.Index...))
 		}
 	}
 }
