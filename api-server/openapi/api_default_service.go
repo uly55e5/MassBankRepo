@@ -15,6 +15,7 @@ import (
 	"errors"
 	"github.com/uly55e5/MassBankRepo/api-server/database"
 	"github.com/uly55e5/MassBankRepo/api-server/massbank"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 	"os"
 )
@@ -29,6 +30,14 @@ func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, filename str
 	mb := massbank.Massbank{}
 	mb.ParseFile(file.Name())
 	id, err := database.InsertMassbank(mb)
+	if werr, ok := err.(mongo.WriteException); ok {
+		msgs := []string{}
+		for _, e := range werr.WriteErrors {
+			msgs = append(msgs, e.Message)
+		}
+		js, _ := json.Marshal(struct{ Errors []string }{msgs})
+		return Response(http.StatusConflict, string(js)), nil
+	}
 	if err != nil {
 		return Response(http.StatusInternalServerError, nil), err
 	}

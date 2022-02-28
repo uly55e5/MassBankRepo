@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -28,6 +29,11 @@ func InitMongoDB() {
 	mongoDB = mongoClient.Database(dbname)
 	if mongoDB == nil {
 		log.Fatal("Database not found")
+	}
+	options := options.IndexOptions{}
+	_, err = mongoDB.Collection("massbank").Indexes().CreateOne(ctx, mongo.IndexModel{bson.D{{"accession", 1}}, options.SetName("accession_1").SetUnique(true)})
+	if err != nil {
+		log.Println("Error while index creation: ", err.Error())
 	}
 }
 
