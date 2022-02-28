@@ -123,6 +123,13 @@ paths:
       responses:
         "200":
           description: OK
+        "409":
+          description: Could not insert dataset
+  /spectra/rebuildgit:
+    post:
+      responses:
+        "200":
+          description: OK
 components:
   parameters:
     offsetParam:

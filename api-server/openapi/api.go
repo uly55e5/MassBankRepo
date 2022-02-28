@@ -22,6 +22,7 @@ type DefaultApiRouter interface {
 	GetAllSpectra(http.ResponseWriter, *http.Request)
 	GetAllSpectraInfo(http.ResponseWriter, *http.Request)
 	GetSpectrum(http.ResponseWriter, *http.Request)
+	SpectraRebuildgitPost(http.ResponseWriter, *http.Request)
 	UploadMassbankPost(http.ResponseWriter, *http.Request)
 }
 
@@ -33,5 +34,6 @@ type DefaultApiServicer interface {
 	GetAllSpectra(context.Context, int64, int64, int64) (ImplResponse, error)
 	GetAllSpectraInfo(context.Context, int64, int64, int64) (ImplResponse, error)
 	GetSpectrum(context.Context, string) (ImplResponse, error)
+	SpectraRebuildgitPost(context.Context) (ImplResponse, error)
 	UploadMassbankPost(context.Context, string, *os.File) (ImplResponse, error)
 }

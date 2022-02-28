@@ -10,10 +10,11 @@
 package openapi
 
 import (
+	_ "encoding/json"
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 )
 
 // DefaultApiController binds http requests to an api service and writes the service results to the http response
@@ -66,6 +67,12 @@ func (c *DefaultApiController) Routes() Routes {
 			strings.ToUpper("Get"),
 			"/spectra/{accession}",
 			c.GetSpectrum,
+		},
+		{
+			"SpectraRebuildgitPost",
+			strings.ToUpper("Post"),
+			"/spectra/rebuildgit",
+			c.SpectraRebuildgitPost,
 		},
 		{
 			"UploadMassbankPost",
@@ -139,6 +146,19 @@ func (c *DefaultApiController) GetSpectrum(w http.ResponseWriter, r *http.Reques
 	accessionParam := chi.URLParam(r, "accession")
 
 	result, err := c.service.GetSpectrum(r.Context(), accessionParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+
+}
+
+// SpectraRebuildgitPost -
+func (c *DefaultApiController) SpectraRebuildgitPost(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.SpectraRebuildgitPost(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

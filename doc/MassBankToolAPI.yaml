@@ -107,6 +107,8 @@ paths:
       responses:
         '200':
           description: OK
+        '409':
+           description: Could not insert dataset
       requestBody:
         content:
           multipart/form-data:
@@ -118,3 +120,9 @@ paths:
                 file:
                   type: string
                   format: binary
+  /spectra/rebuildgit:
+    post:
+      responses:
+        '200':
+          description: OK
+

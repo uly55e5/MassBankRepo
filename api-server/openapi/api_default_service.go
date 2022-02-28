@@ -10,12 +10,16 @@
 package openapi
 
 import (
+	"archive/zip"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/uly55e5/MassBankRepo/api-server/database"
 	"github.com/uly55e5/MassBankRepo/api-server/massbank"
 	"go.mongodb.org/mongo-driver/mongo"
+	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -24,6 +28,31 @@ import (
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
+}
+
+func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResponse, error) {
+	tr := http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	c := http.Client{Transport: &tr}
+	resp, err := c.Get("https://github.com/MassBank/MassBank-data/archive/refs/heads/main.zip")
+	zipfile, err := os.Create("/tmp/git.zip")
+	io.Copy(zipfile, resp.Body)
+	r, err := zip.OpenReader("/tmp/git.zip")
+	if err != nil {
+		log.Panicln(err)
+	}
+	for _, fileheader := range r.File {
+		name := fileheader.Name
+		log.Println(name)
+		file, err := fileheader.Open()
+		buf :=  []byte{}
+		int file.Read(buf)
+
+	}
+	panic("implement me")
 }
 
 func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, filename string, file *os.File) (ImplResponse, error) {
