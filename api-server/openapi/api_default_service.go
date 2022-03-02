@@ -17,11 +17,13 @@ import (
 	"errors"
 	"github.com/uly55e5/MassBankRepo/api-server/database"
 	"github.com/uly55e5/MassBankRepo/api-server/massbank"
+	"github.com/uly55e5/MassBankRepo/api-server/mberror"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
@@ -44,20 +46,30 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 	if err != nil {
 		log.Panicln(err)
 	}
+	var count int64 = 0
+	mberror.Check(database.ClearMassbankCollection())
 	for _, fileheader := range r.File {
 		name := fileheader.Name
 		log.Println(name)
-		file, err := fileheader.Open()
-		buf :=  []byte{}
-		int file.Read(buf)
-
+		if strings.HasSuffix(fileheader.Name, ".txt") {
+			file, err := fileheader.Open()
+			if mberror.Check(err) {
+				continue
+			}
+			mb, err := massbank.ScanMbFile(file)
+			if mberror.Check(err) {
+				continue
+			}
+			count++
+			database.InsertMassbank(mb)
+		}
 	}
-	panic("implement me")
+	js, _ := json.Marshal(struct{ size int64 }{count})
+	return Response(http.StatusOK, js), nil
 }
 
 func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, filename string, file *os.File) (ImplResponse, error) {
-	mb := massbank.Massbank{}
-	mb.ParseFile(file.Name())
+	mb, err := massbank.ParseFile(file.Name())
 	id, err := database.InsertMassbank(mb)
 	if werr, ok := err.(mongo.WriteException); ok {
 		msgs := []string{}

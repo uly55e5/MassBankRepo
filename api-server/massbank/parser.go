@@ -3,6 +3,9 @@ package massbank
 import (
 	"bufio"
 	"errors"
+	"github.com/uly55e5/MassBankRepo/api-server/mberror"
+	"io"
+	"log"
 	"os"
 	"reflect"
 	"regexp"
@@ -22,8 +25,12 @@ func (p *StringProperty) Parse(s string) error {
 
 func (p *SubtagProperty) Parse(s string) error {
 	ss := strings.SplitN(s, " ", 2)
-	p.subtag = ss[0]
-	p.string = ss[1]
+	if len(ss) > 1 {
+		p.subtag = ss[0]
+		p.string = ss[1]
+	} else {
+		log.Println("Subtag error ", s)
+	}
 	return nil
 }
 
@@ -37,7 +44,7 @@ func (d *RecordDate) Parse(s string) error {
 			if d.Created, err = time.Parse(dateFormat, ss2[1]); err != nil {
 				return err
 			} else {
-				return errors.New("Format error in Date")
+				return errors.New("Format mberror in Date")
 			}
 		}
 	} else {
@@ -104,43 +111,57 @@ func (p *PkPeak) Parse(s string) error {
 	return nil
 }
 
-func (mb *Massbank) ParseFile(fileName string) error {
+func ParseFile(fileName string) (mb *Massbank, err error) {
+	file, err := os.Open(fileName)
+	if mberror.Check(err) {
+		return nil, err
+	}
+	mb, err = ScanMbFile(file)
+	if mberror.Check(err) {
+		mberror.Check(file.Close())
+		return nil, err
+	}
+	mberror.Check(file.Close())
+	return mb, nil
+}
+
+func ScanMbFile(mb2Reader io.Reader) (*Massbank, error) {
 	if len(TagMap) == 0 {
 		buildTags()
 	}
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(file)
+	var mb = Massbank{}
+	scanner := bufio.NewScanner(mb2Reader)
 	lineNum := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "//") {
-			// ignore comment
-		} else if strings.HasPrefix(line, "  ") {
-			if lastTag == "PK$PEAK" {
-				var pv PeakValue
-				if err = pv.parse(strings.TrimSpace(line)); err != nil {
-					println("Could not read Peakvalue: line ", lineNum, err.Error())
-				} else {
-					mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, pv)
-				}
-			} else {
-				println("not implemented", line)
-			}
-		} else {
-			s := strings.SplitN(line, ":", 2)
-			if len(s) == 2 {
-				mb.addValue(strings.TrimSpace(s[0]), strings.TrimSpace(s[1]))
-			} else {
-				println("The line is not a valid massbank tag line: \n", line)
-			}
-		}
+		mb.ReadLine(line, lineNum)
 		lineNum++
 	}
-	file.Close()
-	return nil
+	return &mb, nil
+}
+
+func (mb *Massbank) ReadLine(line string, lineNum int) {
+	if strings.HasPrefix(line, "//") {
+		// ignore comment
+	} else if strings.HasPrefix(line, "  ") {
+		if lastTag == "PK$PEAK" {
+			var pv PeakValue
+			if err := pv.parse(strings.TrimSpace(line)); err != nil {
+				println("Could not read Peakvalue: line ", lineNum, err.Error())
+			} else {
+				mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, pv)
+			}
+		} else {
+			println("not implemented", line)
+		}
+	} else {
+		s := strings.SplitN(line, ":", 2)
+		if len(s) == 2 {
+			mb.addValue(strings.TrimSpace(s[0]), strings.TrimSpace(s[1]))
+		} else {
+			println("The line is not a valid massbank tag line: \n", line)
+		}
+	}
 }
 
 func (p *PeakValue) parse(s string) error {
