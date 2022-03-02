@@ -49,8 +49,6 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 	var count int64 = 0
 	mberror.Check(database.ClearMassbankCollection())
 	for _, fileheader := range r.File {
-		name := fileheader.Name
-		log.Println(name)
 		if strings.HasSuffix(fileheader.Name, ".txt") {
 			file, err := fileheader.Open()
 			if mberror.Check(err) {
@@ -64,8 +62,8 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 			database.InsertMassbank(mb)
 		}
 	}
-	js, _ := json.Marshal(struct{ size int64 }{count})
-	return Response(http.StatusOK, js), nil
+	js, _ := json.Marshal(struct{ Size int64 }{count})
+	return Response(http.StatusOK, string(js)), nil
 }
 
 func (s *DefaultApiService) UploadMassbankPost(ctx context.Context, filename string, file *os.File) (ImplResponse, error) {
@@ -93,13 +91,21 @@ func NewDefaultApiService() DefaultApiServicer {
 
 // GetAllSpectra -
 func (s *DefaultApiService) GetAllSpectra(ctx context.Context, limit int64, offset int64, page int64) (ImplResponse, error) {
-	// TODO - update GetAllSpectra with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(200, []SpectrumListItem{}) or use other options such as http.Ok ...
-	//return Response(200, []SpectrumListItem{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetAllSpectra method not implemented")
+	if limit < 1 {
+		limit = 20
+	}
+	if page < 1 {
+		page = 1
+	}
+	skip := offset + (page-1)*limit
+	result, err := database.GetSpectra(skip, limit)
+	if mberror.Check(err) {
+		return Response(http.StatusInternalServerError, ""), err
+	}
+	if mberror.Check(err) {
+		return Response(http.StatusInternalServerError, ""), err
+	}
+	return Response(http.StatusOK, result), nil
 }
 
 // GetAllSpectraInfo -
