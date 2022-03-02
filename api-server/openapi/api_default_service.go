@@ -14,7 +14,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"github.com/uly55e5/MassBankRepo/api-server/database"
 	"github.com/uly55e5/MassBankRepo/api-server/massbank"
 	"github.com/uly55e5/MassBankRepo/api-server/mberror"
@@ -98,10 +97,7 @@ func (s *DefaultApiService) GetAllSpectra(ctx context.Context, limit int64, offs
 		page = 1
 	}
 	skip := offset + (page-1)*limit
-	result, err := database.GetSpectra(skip, limit)
-	if mberror.Check(err) {
-		return Response(http.StatusInternalServerError, ""), err
-	}
+	result, err := database.GetAllSpectra(skip, limit)
 	if mberror.Check(err) {
 		return Response(http.StatusInternalServerError, ""), err
 	}
@@ -110,25 +106,25 @@ func (s *DefaultApiService) GetAllSpectra(ctx context.Context, limit int64, offs
 
 // GetAllSpectraInfo -
 func (s *DefaultApiService) GetAllSpectraInfo(ctx context.Context, limit int64, offset int64, page int64) (ImplResponse, error) {
-	// TODO - update GetAllSpectraInfo with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(200, []SpectrumListItem{}) or use other options such as http.Ok ...
-	//return Response(200, []SpectrumListItem{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetAllSpectraInfo method not implemented")
+	if limit < 1 {
+		limit = 20
+	}
+	if page < 1 {
+		page = 1
+	}
+	skip := offset + (page-1)*limit
+	result, err := database.GetSpectraInfo(skip, limit)
+	if mberror.Check(err) {
+		return Response(http.StatusInternalServerError, ""), err
+	}
+	return Response(http.StatusOK, result), nil
 }
 
 // GetSpectrum -
 func (s *DefaultApiService) GetSpectrum(ctx context.Context, accession string) (ImplResponse, error) {
-	// TODO - update GetSpectrum with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(200, Spectrum{}) or use other options such as http.Ok ...
-	//return Response(200, Spectrum{}), nil
-
-	//TODO: Uncomment the next line to return response Response(404, {}) or use other options such as http.Ok ...
-	//return Response(404, nil),nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("GetSpectrum method not implemented")
+	result, err := database.GetSpectrum(accession)
+	if mberror.Check(err) {
+		return Response(http.StatusInternalServerError, ""), err
+	}
+	return Response(http.StatusOK, result), nil
 }
