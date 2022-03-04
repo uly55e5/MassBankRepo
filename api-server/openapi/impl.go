@@ -9,7 +9,7 @@
 
 package openapi
 
-//Implementation response defines an mberror code with the associated body
+//Implementation response defines an error code with the associated body
 type ImplResponse struct {
 	Code    int
 	Headers map[string][]string

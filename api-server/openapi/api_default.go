@@ -10,11 +10,10 @@
 package openapi
 
 import (
-	_ "encoding/json"
 	"net/http"
 	"strings"
 
-	chi "github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5"
 )
 
 // DefaultApiController binds http requests to an api service and writes the service results to the http response
@@ -59,7 +58,7 @@ func (c *DefaultApiController) Routes() Routes {
 		{
 			"GetAllSpectraInfo",
 			strings.ToUpper("Get"),
-			"/spectra/info",
+			"/spectrainfo",
 			c.GetAllSpectraInfo,
 		},
 		{
@@ -102,12 +101,12 @@ func (c *DefaultApiController) GetAllSpectra(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	result, err := c.service.GetAllSpectra(r.Context(), limitParam, offsetParam, pageParam)
-	// If an mberror occurred, encode the mberror with the status code
+	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
-	// If no mberror, encode the body and the result code
+	// If no error, encode the body and the result code
 	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 
 }
@@ -131,12 +130,12 @@ func (c *DefaultApiController) GetAllSpectraInfo(w http.ResponseWriter, r *http.
 		return
 	}
 	result, err := c.service.GetAllSpectraInfo(r.Context(), limitParam, offsetParam, pageParam)
-	// If an mberror occurred, encode the mberror with the status code
+	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
-	// If no mberror, encode the body and the result code
+	// If no error, encode the body and the result code
 	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 
 }
@@ -146,12 +145,12 @@ func (c *DefaultApiController) GetSpectrum(w http.ResponseWriter, r *http.Reques
 	accessionParam := chi.URLParam(r, "accession")
 
 	result, err := c.service.GetSpectrum(r.Context(), accessionParam)
-	// If an mberror occurred, encode the mberror with the status code
+	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
-	// If no mberror, encode the body and the result code
+	// If no error, encode the body and the result code
 	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 
 }
@@ -159,12 +158,12 @@ func (c *DefaultApiController) GetSpectrum(w http.ResponseWriter, r *http.Reques
 // SpectraRebuildgitPost -
 func (c *DefaultApiController) SpectraRebuildgitPost(w http.ResponseWriter, r *http.Request) {
 	result, err := c.service.SpectraRebuildgitPost(r.Context())
-	// If an mberror occurred, encode the mberror with the status code
+	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
-	// If no mberror, encode the body and the result code
+	// If no error, encode the body and the result code
 	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 
 }
@@ -183,12 +182,12 @@ func (c *DefaultApiController) UploadMassbankPost(w http.ResponseWriter, r *http
 		return
 	}
 	result, err := c.service.UploadMassbankPost(r.Context(), filenameParam, fileParam)
-	// If an mberror occurred, encode the mberror with the status code
+	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
 		return
 	}
-	// If no mberror, encode the body and the result code
+	// If no error, encode the body and the result code
 	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 
 }

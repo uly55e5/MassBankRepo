@@ -68,10 +68,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SpectrumListItem'
-  /spectra/info:
+                type: object
+                properties:
+                  totalCount:
+                    type: integer
+                  spectra:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpectrumListItem'
+  /spectrainfo:
     get:
       operationId: getAllSpectraInfo
       parameters:
@@ -84,9 +89,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SpectrumListItem'
+                type: object
+                properties:
+                  totalCount:
+                    type: integer
+                  spectra:
+                    items:
+                      $ref: '#/components/schemas/SpectrumListItem'
 
   /spectra/{accession}:
     get:

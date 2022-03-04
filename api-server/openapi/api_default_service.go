@@ -14,15 +14,17 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/uly55e5/MassBankRepo/api-server/database"
-	"github.com/uly55e5/MassBankRepo/api-server/massbank"
-	"github.com/uly55e5/MassBankRepo/api-server/mberror"
-	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/uly55e5/MassBankRepo/api-server/database"
+	"github.com/uly55e5/MassBankRepo/api-server/massbank"
+	"github.com/uly55e5/MassBankRepo/api-server/mberror"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
@@ -58,7 +60,7 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 				continue
 			}
 			count++
-			database.InsertMassbank(mb)
+			go database.InsertMassbank(mb)
 		}
 	}
 	js, _ := json.Marshal(struct{ Size int64 }{count})
@@ -113,10 +115,15 @@ func (s *DefaultApiService) GetAllSpectraInfo(ctx context.Context, limit int64, 
 		page = 1
 	}
 	skip := offset + (page-1)*limit
-	result, err := database.GetSpectraInfo(skip, limit)
+	data, err := database.GetSpectraInfo(skip, limit)
 	if mberror.Check(err) {
 		return Response(http.StatusInternalServerError, ""), err
 	}
+	count, err := database.Count()
+	if mberror.Check(err) {
+		return Response(http.StatusInternalServerError, ""), err
+	}
+	result := bson.M{"totalCount": count, "spectra": data}
 	return Response(http.StatusOK, result), nil
 }
 

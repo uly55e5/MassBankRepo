@@ -41,11 +41,9 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/SpectrumListItem'
-                type: array
+                $ref: '#/components/schemas/inline_response_200'
           description: A list of spectra
-  /spectra/info:
+  /spectrainfo:
     get:
       operationId: getAllSpectraInfo
       parameters:
@@ -81,9 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/SpectrumListItem'
-                type: array
+                $ref: '#/components/schemas/inline_response_200'
           description: A list of spectra
   /spectra/{accession}:
     get:
@@ -199,6 +195,20 @@ components:
           type: string
       required:
       - accession
+      type: object
+    inline_response_200:
+      example:
+        spectra:
+        - accession: accession
+        - accession: accession
+        totalCount: 0
+      properties:
+        totalCount:
+          type: integer
+        spectra:
+          items:
+            $ref: '#/components/schemas/SpectrumListItem'
+          type: array
       type: object
     inline_object:
       properties:
