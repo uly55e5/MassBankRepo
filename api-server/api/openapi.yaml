@@ -121,6 +121,25 @@ paths:
           description: OK
         "409":
           description: Could not insert dataset
+  /upload/mzml:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_1'
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                filename:
+                  type: string
+                file:
+                  format: binary
+                  type: string
+              type: object
+      responses:
+        "200":
+          description: OK
+        "409":
+          description: Could not insert dataset
   /spectra/rebuildgit:
     post:
       responses:
@@ -168,6 +187,11 @@ components:
         type: string
       style: simple
   requestBodies:
+    inline_object_1:
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/inline_object_1'
     inline_object:
       content:
         multipart/form-data:
@@ -211,6 +235,14 @@ components:
           type: array
       type: object
     inline_object:
+      properties:
+        filename:
+          type: string
+        file:
+          format: binary
+          type: string
+      type: object
+    inline_object_1:
       properties:
         filename:
           type: string

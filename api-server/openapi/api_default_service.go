@@ -14,6 +14,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"encoding/xml"
 	"io"
 	"log"
 	"net/http"
@@ -31,6 +32,45 @@ import (
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
+}
+
+type Tag struct {
+	XMLName xml.Name
+	Content []Tag  `xml:",any"`
+	Value   string `xml:",chardata"`
+	Attr    string `xml:",attr"`
+	String  string `xml:",innerxml"`
+}
+
+type Xml struct {
+	Items []Tag `xml:",any"`
+}
+
+func (s *DefaultApiService) UploadMzmlPost(ctx context.Context, filename string, file *os.File) (ImplResponse, error) {
+	f, err := os.Open(file.Name())
+	info, err := f.Stat()
+	var data = make([]byte, info.Size())
+	mberror.Check(err)
+	n, err := f.Read(data)
+	mberror.Check(err)
+	println(n)
+	var mz = Xml{}
+	err = xml.Unmarshal(data, &mz)
+	mberror.Check(err)
+	id, err := database.InsertMzML(mz)
+	if werr, ok := err.(mongo.WriteException); ok {
+		msgs := []string{}
+		for _, e := range werr.WriteErrors {
+			msgs = append(msgs, e.Message)
+		}
+		js, _ := json.Marshal(struct{ Errors []string }{msgs})
+		return Response(http.StatusConflict, string(js)), nil
+	}
+	if err != nil {
+		return Response(http.StatusInternalServerError, nil), err
+	}
+	js, _ := json.Marshal(struct{ Id string }{id})
+	return Response(http.StatusOK, string(js)), nil
 }
 
 func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResponse, error) {
@@ -60,7 +100,8 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 				continue
 			}
 			count++
-			go database.InsertMassbank(mb)
+			_, err = database.InsertMassbank(mb)
+			mberror.Check(err)
 		}
 	}
 	js, _ := json.Marshal(struct{ Size int64 }{count})

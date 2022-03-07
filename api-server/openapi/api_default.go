@@ -79,6 +79,12 @@ func (c *DefaultApiController) Routes() Routes {
 			"/upload/massbank",
 			c.UploadMassbankPost,
 		},
+		{
+			"UploadMzmlPost",
+			strings.ToUpper("Post"),
+			"/upload/mzml",
+			c.UploadMzmlPost,
+		},
 	}
 }
 
@@ -182,6 +188,30 @@ func (c *DefaultApiController) UploadMassbankPost(w http.ResponseWriter, r *http
 		return
 	}
 	result, err := c.service.UploadMassbankPost(r.Context(), filenameParam, fileParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+
+}
+
+// UploadMzmlPost -
+func (c *DefaultApiController) UploadMzmlPost(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	filenameParam := r.FormValue("filename")
+
+	fileParam, err := ReadFormFileToTempFile(r, "file")
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	result, err := c.service.UploadMzmlPost(r.Context(), filenameParam, fileParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

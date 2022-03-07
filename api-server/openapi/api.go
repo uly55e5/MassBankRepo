@@ -24,6 +24,7 @@ type DefaultApiRouter interface {
 	GetSpectrum(http.ResponseWriter, *http.Request)
 	SpectraRebuildgitPost(http.ResponseWriter, *http.Request)
 	UploadMassbankPost(http.ResponseWriter, *http.Request)
+	UploadMzmlPost(http.ResponseWriter, *http.Request)
 }
 
 // DefaultApiServicer defines the api actions for the DefaultApi service
@@ -36,4 +37,5 @@ type DefaultApiServicer interface {
 	GetSpectrum(context.Context, string) (ImplResponse, error)
 	SpectraRebuildgitPost(context.Context) (ImplResponse, error)
 	UploadMassbankPost(context.Context, string, *os.File) (ImplResponse, error)
+	UploadMzmlPost(context.Context, string, *os.File) (ImplResponse, error)
 }
