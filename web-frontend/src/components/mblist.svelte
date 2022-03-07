@@ -22,6 +22,6 @@
 </script>
 
 {#each spectra as mb}
-    <p>{mb.accession}</p>
+    <div><a href="#/spectrum/{mb.accession}">{mb.accession}</a></div>
 {/each}
 <Pagination totalItems={totaldata} bind:page></Pagination>

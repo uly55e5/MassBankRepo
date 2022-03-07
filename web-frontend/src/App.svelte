@@ -1,10 +1,21 @@
 <script>
 	import MbList from "./components/mblist.svelte"
+	import Home from "./routes/Home.svelte"
+	import Spectrum from "./routes/Spectrum.svelte"
+	import Router from "svelte-spa-router"
+
+const routes = {
+		'/': Home,
+		'/spectrum/:accession': Spectrum
+}
+
+
 </script>
 
 <main>
 	<h1>MassBank Tools</h1>
-	<MbList></MbList>
+	<h2><a href="#/">Home</a></h2>
+	<Router {routes}></Router>
 </main>
 
 <style>
