@@ -79,7 +79,7 @@ func (p PkNumPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 func (p PkAnnotation) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	return bson.MarshalValue(struct {
-		header []string
-		values []AnnotationValue
+		Header []string
+		Values []AnnotationValue
 	}{p.Header, p.Values})
 }

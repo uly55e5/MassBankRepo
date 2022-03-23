@@ -111,6 +111,29 @@ func (p *PkPeak) Parse(s string) error {
 	return nil
 }
 
+func (p *PkAnnotation) Parse(s string) error {
+	p.Header = strings.Split(s, " ")
+	return nil
+}
+
+func (p *AnnotationValue) parse(s string) error {
+	svals := strings.Split(s, " ")
+	for _, ss := range svals {
+		i, err := strconv.ParseInt(ss, 10, 64)
+		if err == nil {
+			*p = append(*p, i)
+			continue
+		}
+		f, err := strconv.ParseFloat(ss, 64)
+		if err == nil {
+			*p = append(*p, f)
+			continue
+		}
+		*p = append(*p, ss)
+	}
+	return nil
+}
+
 func ParseFile(fileName string) (mb *Massbank, err error) {
 	file, err := os.Open(fileName)
 	if mberror.Check(err) {
@@ -145,12 +168,9 @@ func (mb *Massbank) ReadLine(line string, lineNum int) {
 		// ignore comment
 	} else if strings.HasPrefix(line, "  ") {
 		if lastTag == "PK$PEAK" {
-			var pv PeakValue
-			if err := pv.parse(strings.TrimSpace(line)); err != nil {
-				println("Could not read Peakvalue: line ", lineNum, err.Error())
-			} else {
-				mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, pv)
-			}
+			mb.parsePeakValue(line, lineNum)
+		} else if lastTag == "PK$ANNOTATION" {
+			mb.parseAnnotationValue(line, lineNum)
 		} else {
 			println("not implemented", line)
 		}
@@ -162,6 +182,29 @@ func (mb *Massbank) ReadLine(line string, lineNum int) {
 			lastTag = tag
 		} else {
 			println("The line is not a valid massbank tag line: \n", line)
+		}
+	}
+}
+
+func (mb *Massbank) parsePeakValue(line string, lineNum int) {
+	var newValue PeakValue
+	if err := newValue.parse(strings.TrimSpace(line)); err != nil {
+		println("Could not read Peakvalue: line ", lineNum, err.Error())
+	} else {
+		mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, newValue)
+	}
+}
+
+func (mb *Massbank) parseAnnotationValue(line string, lineNum int) {
+	var values = &(mb.Peak.Annotation.Values)
+	var newValue AnnotationValue
+	if err := newValue.parse(strings.TrimSpace(line)); err != nil {
+		println("Could not read Annotation Value: line ", lineNum, err.Error())
+	} else {
+		if strings.HasPrefix(line, "    ") && len(*values) > 0 {
+			(*values)[len(*values)-1] = append((*values)[len(*values)-1], newValue)
+		} else {
+			*values = append(*values, newValue)
 		}
 	}
 }
