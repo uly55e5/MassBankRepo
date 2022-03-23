@@ -63,9 +63,14 @@ func (p SpLink) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 func (p PkPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	return bson.MarshalValue(struct {
-		header []string
-		values []PeakValue
+		Header []string
+		Values []PeakValue
 	}{p.Header, p.Values})
+}
+
+func (p PeakValue) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	val := bson.A{p.Mz, p.Intensity, p.Rel}
+	return bson.MarshalValue(val)
 }
 
 func (p PkNumPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {

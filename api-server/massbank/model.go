@@ -253,9 +253,9 @@ type PkNumPeak struct {
 }
 
 type PeakValue struct {
-	mz        float64
-	intensity float64
-	rel       uint
+	Mz        float64
+	Intensity float64
+	Rel       uint
 }
 
 type TagValue struct {

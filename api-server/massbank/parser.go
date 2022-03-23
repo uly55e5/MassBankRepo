@@ -157,7 +157,9 @@ func (mb *Massbank) ReadLine(line string, lineNum int) {
 	} else {
 		s := strings.SplitN(line, ":", 2)
 		if len(s) == 2 {
-			mb.addValue(strings.TrimSpace(s[0]), strings.TrimSpace(s[1]))
+			tag := strings.TrimSpace(s[0])
+			mb.addValue(tag, strings.TrimSpace(s[1]))
+			lastTag = tag
 		} else {
 			println("The line is not a valid massbank tag line: \n", line)
 		}
@@ -168,16 +170,16 @@ func (p *PeakValue) parse(s string) error {
 	ss := strings.Split(s, " ")
 	var err error
 	var rel uint64
-	if p.mz, err = strconv.ParseFloat(ss[0], 32); err != nil {
+	if p.Mz, err = strconv.ParseFloat(ss[0], 32); err != nil {
 		return errors.New("Could not parse mz value")
 	}
-	if p.intensity, err = strconv.ParseFloat(ss[1], 32); err != nil {
+	if p.Intensity, err = strconv.ParseFloat(ss[1], 32); err != nil {
 		return errors.New("Could not parse intensity value")
 	}
 	if rel, err = strconv.ParseUint(ss[2], 10, 32); err != nil {
 		return errors.New("Could not parse relative intensity")
 	}
-	p.rel = uint(rel)
+	p.Rel = uint(rel)
 	return nil
 }
 
@@ -195,7 +197,6 @@ func (mb *Massbank) addValue(tagname string, value string) error {
 	newInterf := newPro.Interface()
 	propInt := newInterf.(Property)
 	err := propInt.Parse(value)
-	lastTag = tagname
 	if err != nil {
 		println(err.Error(), tagname)
 	}
