@@ -233,8 +233,10 @@ type AcGeneral struct {
 
 type PkPeak struct {
 	DefaultProperty
-	Header []string
-	Values []PeakValue
+	Header    []string
+	Mz        []float64
+	Intensity []float64
+	Rel       []uint
 }
 
 type MsFocusedIon struct {
@@ -259,12 +261,6 @@ type PkAnnotation struct {
 type PkNumPeak struct {
 	DefaultProperty
 	Value uint
-}
-
-type PeakValue struct {
-	Mz        float64
-	Intensity float64
-	Rel       uint
 }
 
 type TagValue struct {

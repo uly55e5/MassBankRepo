@@ -52,14 +52,11 @@ func (p SpLineage) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 func (p PkPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	return bson.MarshalValue(struct {
-		Header []string
-		Values []PeakValue
-	}{p.Header, p.Values})
-}
-
-func (p PeakValue) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	val := bson.A{p.Mz, p.Intensity, p.Rel}
-	return bson.MarshalValue(val)
+		Header    []string
+		Mz        []float64
+		Intensity []float64
+		Rel       []uint
+	}{p.Header, p.Mz, p.Intensity, p.Rel})
 }
 
 func (p PkNumPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {

@@ -147,6 +147,9 @@ func (p *PkPeak) Parse(s string) error {
 		return errors.New("PK$ is not valid")
 	}
 	p.Header = strings.Split(s, " ")
+	p.Mz = []float64{}
+	p.Intensity = []float64{}
+	p.Rel = []uint{}
 	return nil
 }
 
@@ -249,13 +252,27 @@ func (mb *Massbank) ReadLine(line string, lineNum int) {
 	}
 }
 
-func (mb *Massbank) parsePeakValue(line string, lineNum int) {
-	var newValue PeakValue
-	if err := newValue.parse(strings.TrimSpace(line)); err != nil {
-		println("Could not read Peakvalue: line ", lineNum, err.Error())
-	} else {
-		mb.Peak.Peak.Values = append(mb.Peak.Peak.Values, newValue)
+func (mb *Massbank) parsePeakValue(line string, lineNum int) error {
+	svals := strings.Split(strings.TrimSpace(line), " ")
+	if len(svals) != 3 {
+		return errors.New("Could not read Peakvalue: line " + strconv.Itoa(lineNum))
 	}
+	var mz, intens float64
+	var err error
+	var rel uint64
+	if mz, err = strconv.ParseFloat(svals[0], 32); err != nil {
+		return errors.New("Could not parse mz value")
+	}
+	if intens, err = strconv.ParseFloat(svals[1], 32); err != nil {
+		return errors.New("Could not parse intensity value")
+	}
+	if rel, err = strconv.ParseUint(svals[2], 10, 32); err != nil {
+		return errors.New("Could not parse relative intensity")
+	}
+	mb.Peak.Peak.Mz = append(mb.Peak.Peak.Mz, mz)
+	mb.Peak.Peak.Intensity = append(mb.Peak.Peak.Intensity, intens)
+	mb.Peak.Peak.Rel = append(mb.Peak.Peak.Rel, uint(rel))
+	return nil
 }
 
 func (mb *Massbank) parseAnnotationValue(line string, lineNum int) {
@@ -270,23 +287,6 @@ func (mb *Massbank) parseAnnotationValue(line string, lineNum int) {
 			*values = append(*values, newValue)
 		}
 	}
-}
-
-func (p *PeakValue) parse(s string) error {
-	ss := strings.Split(s, " ")
-	var err error
-	var rel uint64
-	if p.Mz, err = strconv.ParseFloat(ss[0], 32); err != nil {
-		return errors.New("Could not parse mz value")
-	}
-	if p.Intensity, err = strconv.ParseFloat(ss[1], 32); err != nil {
-		return errors.New("Could not parse intensity value")
-	}
-	if rel, err = strconv.ParseUint(ss[2], 10, 32); err != nil {
-		return errors.New("Could not parse relative intensity")
-	}
-	p.Rel = uint(rel)
-	return nil
 }
 
 func (mb *Massbank) addValue(tagname string, value string, lineNum int) error {
