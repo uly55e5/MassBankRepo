@@ -6,6 +6,7 @@ import (
 )
 
 const dateFormat = "2006.01.02"
+const deprecatedDateFormat = "2006-01-02"
 
 var lastTag string
 
@@ -37,6 +38,9 @@ type tagProperties struct {
 var TagMap = map[string]tagProperties{}
 
 type Massbank struct {
+	File struct {
+		FileName string
+	}
 	Accession   *RecordAccession   `mb2:"ACCESSION"`
 	Deprecated  *RecordDeprecated  `mb2:"DEPRECATED" optional:"true"`
 	RecordTitle *RecordTitle       `mb2:"RECORD_TITLE"`
@@ -98,8 +102,9 @@ type RecordTitle struct {
 
 type RecordDate struct {
 	DefaultProperty
-	Updated time.Time
-	Created time.Time
+	Updated  time.Time
+	Created  time.Time
+	Modified time.Time
 }
 
 type RecordAuthorNames struct {

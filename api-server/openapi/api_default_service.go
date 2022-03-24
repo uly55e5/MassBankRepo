@@ -95,7 +95,7 @@ func (s *DefaultApiService) SpectraRebuildgitPost(ctx context.Context) (ImplResp
 			if mberror.Check(err) {
 				continue
 			}
-			mb, err := massbank.ScanMbFile(file)
+			mb, err := massbank.ScanMbFile(file, fileheader.Name)
 			if mberror.Check(err) {
 				continue
 			}

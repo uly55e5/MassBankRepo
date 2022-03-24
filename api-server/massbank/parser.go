@@ -29,7 +29,7 @@ func (p *SubtagProperty) Parse(s string) error {
 		p.subtag = ss[0]
 		p.string = ss[1]
 	} else {
-		log.Println("Subtag error ", s)
+		return errors.New("Subtag error: " + s)
 	}
 	return nil
 }
@@ -38,13 +38,26 @@ func (d *RecordDate) Parse(s string) error {
 	var err error
 	ss := strings.SplitN(s, " ", 2)
 	if len(ss) > 1 {
-		re := regexp.MustCompile("\\(Cretated (.*)\\)")
+		re := regexp.MustCompile("\\(Created (.*)\\)")
 		ss2 := re.FindStringSubmatch(ss[1])
 		if len(ss2) == 2 {
-			if d.Created, err = time.Parse(dateFormat, ss2[1]); err != nil {
-				return err
+			ss3 := strings.SplitN(ss2[1], ",", 2)
+			if len(ss3) > 1 {
+				if d.Created, err = time.Parse(dateFormat, ss3[0]); err != nil {
+					return err
+				}
+				ss4 := strings.SplitN(strings.TrimSpace(ss3[1]), " ", 2)
+				if len(ss4) > 1 {
+					if d.Modified, err = time.Parse(dateFormat, ss4[1]); strings.TrimSpace(ss4[0]) != "modified" || err != nil {
+						return err
+					}
+				} else {
+					return err
+				}
 			} else {
-				return errors.New("Format mberror in Date")
+				if d.Created, err = time.Parse(dateFormat, ss2[1]); err != nil {
+					return err
+				}
 			}
 		}
 	} else {
@@ -58,6 +71,21 @@ func (d *RecordDate) Parse(s string) error {
 	}
 	return nil
 
+}
+
+func (p *RecordDeprecated) Parse(s string) error {
+	var err error
+	ss := strings.SplitN(s, " ", 2)
+	if len(ss) > 0 {
+		if p.Date, err = time.Parse(deprecatedDateFormat, ss[0]); err != nil {
+			return errors.New("Format error in Date: " + err.Error())
+		}
+		if len(ss) > 1 {
+			p.Reason = ss[1]
+		}
+		return nil
+	}
+	return errors.New("Could not parse DEPRECATED tag.")
 }
 
 func (names *RecordAuthorNames) Parse(s string) error {
@@ -139,7 +167,7 @@ func ParseFile(fileName string) (mb *Massbank, err error) {
 	if mberror.Check(err) {
 		return nil, err
 	}
-	mb, err = ScanMbFile(file)
+	mb, err = ScanMbFile(file, fileName)
 	if mberror.Check(err) {
 		mberror.Check(file.Close())
 		return nil, err
@@ -148,11 +176,12 @@ func ParseFile(fileName string) (mb *Massbank, err error) {
 	return mb, nil
 }
 
-func ScanMbFile(mb2Reader io.Reader) (*Massbank, error) {
+func ScanMbFile(mb2Reader io.Reader, fileName string) (*Massbank, error) {
 	if len(TagMap) == 0 {
 		buildTags()
 	}
 	var mb = Massbank{}
+	mb.File.FileName = fileName
 	scanner := bufio.NewScanner(mb2Reader)
 	lineNum := 0
 	for scanner.Scan() {
@@ -178,7 +207,7 @@ func (mb *Massbank) ReadLine(line string, lineNum int) {
 		s := strings.SplitN(line, ":", 2)
 		if len(s) == 2 {
 			tag := strings.TrimSpace(s[0])
-			mb.addValue(tag, strings.TrimSpace(s[1]))
+			mb.addValue(tag, strings.TrimSpace(s[1]), lineNum)
 			lastTag = tag
 		} else {
 			println("The line is not a valid massbank tag line: \n", line)
@@ -226,7 +255,7 @@ func (p *PeakValue) parse(s string) error {
 	return nil
 }
 
-func (mb *Massbank) addValue(tagname string, value string) error {
+func (mb *Massbank) addValue(tagname string, value string, lineNum int) error {
 	tagInfo := TagMap[tagname]
 	index := tagInfo.Index
 	mb2 := reflect.ValueOf(mb)
@@ -241,7 +270,7 @@ func (mb *Massbank) addValue(tagname string, value string) error {
 	propInt := newInterf.(Property)
 	err := propInt.Parse(value)
 	if err != nil {
-		println(err.Error(), tagname)
+		log.Println(err.Error(), "Tag: ", tagname, "File: ", mb.File.FileName, "Line: ", lineNum)
 	}
 	if prop.Kind() == reflect.Slice {
 		prop.Set(reflect.Append(prop, newPro))
