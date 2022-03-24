@@ -155,6 +155,7 @@ func (p *PkPeak) Parse(s string) error {
 
 func (p *PkAnnotation) Parse(s string) error {
 	p.Header = strings.Split(s, " ")
+	p.Values = map[string][]interface{}{}
 	return nil
 }
 
@@ -177,24 +178,6 @@ func (p *RecordComment) Parse(s string) error {
 		p.string = s
 	} else {
 		return errors.New("Subtag error: " + s)
-	}
-	return nil
-}
-
-func (p *AnnotationValue) parse(s string) error {
-	svals := strings.Split(s, " ")
-	for _, ss := range svals {
-		i, err := strconv.ParseInt(ss, 10, 64)
-		if err == nil {
-			*p = append(*p, i)
-			continue
-		}
-		f, err := strconv.ParseFloat(ss, 64)
-		if err == nil {
-			*p = append(*p, f)
-			continue
-		}
-		*p = append(*p, ss)
 	}
 	return nil
 }
@@ -277,15 +260,25 @@ func (mb *Massbank) parsePeakValue(line string, lineNum int) error {
 
 func (mb *Massbank) parseAnnotationValue(line string, lineNum int) {
 	var values = &(mb.Peak.Annotation.Values)
-	var newValue AnnotationValue
-	if err := newValue.parse(strings.TrimSpace(line)); err != nil {
-		println("Could not read Annotation Value: line ", lineNum, err.Error())
-	} else {
-		if strings.HasPrefix(line, "    ") && len(*values) > 0 {
-			(*values)[len(*values)-1] = append((*values)[len(*values)-1], newValue)
-		} else {
-			*values = append(*values, newValue)
+	var header = mb.Peak.Annotation.Header
+	if strings.HasPrefix(line, "    ") && len(*values) > 0 {
+		log.Println("Found multiline annotation")
+		return
+	}
+	svals := strings.Split(strings.TrimSpace(line), " ")
+	for index, ss := range svals {
+		h := header[index]
+		i, err := strconv.ParseInt(ss, 10, 64)
+		if err == nil {
+			(*values)[h] = append((*values)[h], i)
+			continue
 		}
+		f, err := strconv.ParseFloat(ss, 64)
+		if err == nil {
+			(*values)[h] = append((*values)[h], f)
+			continue
+		}
+		(*values)[h] = append((*values)[h], ss)
 	}
 }
 

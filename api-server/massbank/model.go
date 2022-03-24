@@ -250,12 +250,10 @@ type PkSplash struct {
 	StringProperty
 }
 
-type AnnotationValue []interface{}
-
 type PkAnnotation struct {
 	DefaultProperty
 	Header []string
-	Values []AnnotationValue
+	Values map[string][]interface{}
 }
 
 type PkNumPeak struct {
