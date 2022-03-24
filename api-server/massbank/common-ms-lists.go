@@ -17,11 +17,6 @@ var internalCommentTagList = []string{
 	"Profile",
 }
 
-var commentSubtagList = []string{
-	"CONFIDENCE",
-	"INTERNAL_ID",
-}
-
 var databaseList = []string{
 	"CAS",
 	"CAYMAN",
@@ -184,4 +179,15 @@ var MSIonizationList = []string{
 	"CI",
 	"FI",
 	"SIMS",
+}
+
+var commentSubtagList = []string{
+	"[MS2]",
+	"[Merging]",
+	"[Merged]",
+	"[Mass spectrometry]",
+	"[Chromatography]",
+	"[Profile]",
+	"CONFIDENCE",
+	"INTERNAL_ID",
 }

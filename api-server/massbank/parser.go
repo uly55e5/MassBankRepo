@@ -165,6 +165,19 @@ func (p *SpLineage) Parse(s string) error {
 	return nil
 }
 
+func (p *RecordComment) Parse(s string) error {
+	ss := strings.SplitN(s, " ", 2)
+	if len(ss) > 1 && contains(commentSubtagList, strings.TrimSpace(ss[0])) {
+		p.subtag = ss[0]
+		p.string = ss[1]
+	} else if len(s) > 0 {
+		p.string = s
+	} else {
+		return errors.New("Subtag error: " + s)
+	}
+	return nil
+}
+
 func (p *AnnotationValue) parse(s string) error {
 	svals := strings.Split(s, " ")
 	for _, ss := range svals {
