@@ -34,6 +34,17 @@ func (p *SubtagProperty) Parse(s string) error {
 	return nil
 }
 
+func (p *DatabaseProperty) Parse(s string) error {
+	ss := strings.SplitN(s, " ", 2)
+	if len(ss) > 1 {
+		p.Database = ss[0]
+		p.Identifier = ss[1]
+	} else {
+		return errors.New("Subtag error: " + s)
+	}
+	return nil
+}
+
 func (d *RecordDate) Parse(s string) error {
 	var err error
 	ss := strings.SplitN(s, " ", 2)
@@ -141,6 +152,16 @@ func (p *PkPeak) Parse(s string) error {
 
 func (p *PkAnnotation) Parse(s string) error {
 	p.Header = strings.Split(s, " ")
+	return nil
+}
+
+func (p *SpLineage) Parse(s string) error {
+	ss := strings.Split(s, ";")
+	for _, es := range ss {
+		element := SpLineageElement{}
+		element.string = strings.TrimSpace(es)
+		p.value = append(p.value, element)
+	}
 	return nil
 }
 

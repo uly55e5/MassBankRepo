@@ -11,16 +11,12 @@ func (p StringProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
 }
 
 func (p SubtagProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	/*	structType := reflect.StructOf([]reflect.StructField{
-			{
-				Name: p.subtag,
-				Type: reflect.TypeOf(p.string),
-				Tag:  ``,
-			},
-		})
-		v := reflect.New(structType).Elem()
-		v.Field(0).SetString(p.string) */
 	m := map[string]string{p.subtag: p.string}
+	return bson.MarshalValue(m)
+}
+
+func (p DatabaseProperty) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	m := map[string]string{p.Database: p.Identifier}
 	return bson.MarshalValue(m)
 }
 
@@ -52,13 +48,6 @@ func (p ChMass) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 func (p SpLineage) MarshalBSONValue() (bsontype.Type, []byte, error) {
 	return bson.MarshalValue(p.value)
-}
-
-func (p SpLink) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(struct {
-		database   string
-		identifier string
-	}{p.Database, p.Identifier})
 }
 
 func (p PkPeak) MarshalBSONValue() (bsontype.Type, []byte, error) {

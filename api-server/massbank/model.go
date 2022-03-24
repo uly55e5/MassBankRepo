@@ -29,6 +29,12 @@ type SubtagProperty struct {
 	subtag string
 }
 
+type DatabaseProperty struct {
+	DefaultProperty
+	Database   string
+	Identifier string
+}
+
 type tagProperties struct {
 	Type  reflect.Type
 	Name  string
@@ -170,7 +176,7 @@ type ChInchi struct {
 }
 
 type ChLink struct {
-	SubtagProperty
+	DatabaseProperty
 }
 
 type ExtDatabase struct {
@@ -195,9 +201,7 @@ type SpLineageElement struct {
 }
 
 type SpLink struct {
-	DefaultProperty
-	Database   string
-	Identifier string
+	DatabaseProperty
 }
 
 type SampleInformation struct {

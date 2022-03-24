@@ -216,10 +216,10 @@ func (inchi *ChInchi) Validate() (bool, error) {
 }
 
 func (link *ChLink) Validate() (bool, error) {
-	if !isUpperCase(link.subtag) {
+	if !isUpperCase(link.Database) {
 		return false, nil
-	} else if contains(databaseList, link.subtag) {
-		return link.string != "", nil
+	} else if contains(databaseList, link.Database) {
+		return link.Identifier != "", nil
 	}
 	return false, nil
 }
