@@ -1,10 +1,4 @@
-openapi: '3.0.3'
-info:
-  title: MassBank Tool API
-  version: "0.1"
-servers:
-  - url: https://localhost:8080/
-components:
+recomponents:
   schemas:
     SpectrumListItem:
       type: object
