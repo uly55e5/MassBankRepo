@@ -1,7 +1,7 @@
 generatorName: go-server
-inputSpec: doc/MassBankToolAPI.yaml
+inputSpec: ../doc/MassBankToolAPI.yaml
 outputDir: api-server
-templateDir: api-server-generate/templates
+templateDir: templates
 modelTests: true
 apiTests: true
 additionalProperties:
