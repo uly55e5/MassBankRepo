@@ -1,6 +1,6 @@
 generatorName: go-server
 inputSpec: ../doc/MassBankToolAPI.yaml
-outputDir: api-server
+outputDir: ../api-server
 templateDir: templates
 modelTests: true
 apiTests: true

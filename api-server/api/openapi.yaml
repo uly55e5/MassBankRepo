@@ -41,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200'
+                $ref: '#/components/schemas/getAllSpectra_200_response'
           description: A list of spectra
   /spectrainfo:
     get:
@@ -79,7 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200'
+                $ref: '#/components/schemas/getAllSpectra_200_response'
           description: A list of spectra
   /spectra/{accession}:
     get:
@@ -105,17 +105,10 @@ paths:
   /upload/massbank:
     post:
       requestBody:
-        $ref: '#/components/requestBodies/inline_object'
         content:
           multipart/form-data:
             schema:
-              properties:
-                filename:
-                  type: string
-                file:
-                  format: binary
-                  type: string
-              type: object
+              $ref: '#/components/schemas/_upload_massbank_post_request'
       responses:
         "200":
           description: OK
@@ -124,17 +117,10 @@ paths:
   /upload/mzml:
     post:
       requestBody:
-        $ref: '#/components/requestBodies/inline_object_1'
         content:
           multipart/form-data:
             schema:
-              properties:
-                filename:
-                  type: string
-                file:
-                  format: binary
-                  type: string
-              type: object
+              $ref: '#/components/schemas/_upload_massbank_post_request'
       responses:
         "200":
           description: OK
@@ -186,17 +172,6 @@ components:
       schema:
         type: string
       style: simple
-  requestBodies:
-    inline_object_1:
-      content:
-        multipart/form-data:
-          schema:
-            $ref: '#/components/schemas/inline_object_1'
-    inline_object:
-      content:
-        multipart/form-data:
-          schema:
-            $ref: '#/components/schemas/inline_object'
   schemas:
     SpectrumListItem:
       additionalProperties:
@@ -220,7 +195,7 @@ components:
       required:
       - accession
       type: object
-    inline_response_200:
+    getAllSpectra_200_response:
       example:
         spectra:
         - accession: accession
@@ -234,15 +209,7 @@ components:
             $ref: '#/components/schemas/SpectrumListItem'
           type: array
       type: object
-    inline_object:
-      properties:
-        filename:
-          type: string
-        file:
-          format: binary
-          type: string
-      type: object
-    inline_object_1:
+    _upload_massbank_post_request:
       properties:
         filename:
           type: string

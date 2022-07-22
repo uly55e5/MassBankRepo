@@ -46,7 +46,7 @@ func NewDefaultApiController(s DefaultApiServicer, opts ...DefaultApiOption) Rou
 	return controller
 }
 
-// Routes returns all of the api route for the DefaultApiController
+// Routes returns all the api routes for the DefaultApiController
 func (c *DefaultApiController) Routes() Routes {
 	return Routes{
 		{

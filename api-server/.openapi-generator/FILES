@@ -5,7 +5,7 @@ openapi/error.go
 openapi/helpers.go
 openapi/impl.go
 openapi/logger.go
-openapi/model_inline_response_200.go
+openapi/model_get_all_spectra_200_response.go
 openapi/model_spectrum.go
 openapi/model_spectrum_list_item.go
 openapi/routers.go

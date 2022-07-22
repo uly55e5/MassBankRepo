@@ -29,7 +29,7 @@ type DefaultApiRouter interface {
 
 // DefaultApiServicer defines the api actions for the DefaultApi service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
-// while the service implementation can ignored with the .openapi-generator-ignore file
+// while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type DefaultApiServicer interface {
 	GetAllSpectra(context.Context, int64, int64, int64) (ImplResponse, error)
