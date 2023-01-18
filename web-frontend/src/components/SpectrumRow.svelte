@@ -1,5 +1,4 @@
 <script>
-    import SpectrumRow from "./SpectrumRow.svelte";
 
     export let data = {}
     export let level = 0
@@ -12,7 +11,6 @@
         {#if key != index}
             <div class="text-left">{@html indent}{key}:</div>
         {/if}
-        <SpectrumRow data={val} level={level+1}></SpectrumRow>
     {:else}
         {#if val}
             <div class="text-left">{@html indent}{key}: {val}</div>
